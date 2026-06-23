@@ -1,0 +1,59 @@
+# WordPress servido em stitchmindapp.com/blog (subpath), auto-hospedado.
+#
+# O WordPress entra na rede do StitchMind (stitchmind-server_default) para que
+# o app (sm-prod-api / Hono) consiga fazer reverse-proxy de /blog/* para
+# sm-blog-wp:80. Não toca em nenhuma outra pasta/projeto. O MariaDB fica numa
+# rede privada (blognet), sem exposição.
+#
+# Subir:  cd /home/pedrosouza/stitchmind-server/blog
+#         sudo docker compose -f docker-compose.blog.yml --env-file .env up -d
+services:
+  blog-db:
+    image: mariadb:11
+    container_name: sm-blog-db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: ${WP_DB_PASSWORD}
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - blog_db:/var/lib/mysql
+    networks: [blognet]
+
+  blog:
+    image: wordpress:php8.3-apache
+    container_name: sm-blog-wp
+    restart: unless-stopped
+    depends_on: [blog-db]
+    environment:
+      WORDPRESS_DB_HOST: blog-db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${WP_DB_PASSWORD}
+      WORDPRESS_DB_NAME: wordpress
+      # Servido sob /blog, atrás do Cloudflare/Caddy + proxy do Hono (HTTPS no
+      # edge). WP gera todas as URLs com o prefixo /blog.
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'https://stitchmindapp.com/blog');
+        define('WP_SITEURL', 'https://stitchmindapp.com/blog');
+        // Atrás do proxy do app (que tira o prefixo /blog e usa host interno):
+        // força o host público e devolve o prefixo /blog ao REQUEST_URI, pra o
+        // WordPress gerar redirects/links corretos (senão cai em sm-blog-wp).
+        $$_SERVER['HTTP_HOST'] = 'stitchmindapp.com';
+        $$_SERVER['HTTPS'] = 'on';
+        if (isset($$_SERVER['REQUEST_URI']) && strpos($$_SERVER['REQUEST_URI'], '/blog') !== 0) {
+          $$_SERVER['REQUEST_URI'] = '/blog' . $$_SERVER['REQUEST_URI'];
+        }
+    volumes:
+      - blog_wp:/var/www/html
+    networks: [blognet, smnet]
+
+volumes:
+  blog_db:
+  blog_wp:
+
+networks:
+  blognet:
+  smnet:
+    external: true
+    name: stitchmind-server_default

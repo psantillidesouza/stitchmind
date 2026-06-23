@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#FBF1F5" />
+  <title>StitchMind · Turn any photo into a pattern</title>
+
+  <!-- ── Google Analytics 4 (mesmo stream do /invite) ── -->
+  <script>
+    window.GA_MEASUREMENT_ID = 'G-CTD14EQRW9';
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    (function () {
+      var id = window.GA_MEASUREMENT_ID;
+      if (!id || id.indexOf('G-') !== 0 || id === 'G-XXXXXXXXXX') return;
+      var s = document.createElement('script');
+      s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      gtag('config', id, { transport_type: 'beacon' });
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --cream:#FBF1F5; --peach:#FFF2F7; --linen:#F6DEEA;
+      --ink:#2A1C24; --soft:#6B5560; --muted:#A8919B;
+      --coral:#D6336C; --coral-deep:#A61E4D; --pink:#F783AC; --ochre:#F59F00;
+      --paper:#FFFFFF; --hairline:#F0DCE5;
+    }
+    *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;}
+    body{
+      margin:0; min-height:100svh; overflow-x:hidden;
+      font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      color:var(--ink);
+      background:radial-gradient(1100px 620px at 50% -12%, #FFF9FB 0%, var(--peach) 38%, var(--cream) 70%, var(--linen) 100%);
+      display:flex; align-items:flex-start; justify-content:center;
+      padding:clamp(20px,5vw,48px) 20px;
+    }
+    .bg{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+    .blob{position:absolute; border-radius:50%; filter:blur(60px); opacity:.40; will-change:transform;}
+    .b1{width:340px;height:340px;background:var(--coral);  top:-90px;  left:-70px;  animation:drift 16s ease-in-out infinite;}
+    .b2{width:300px;height:300px;background:var(--pink);   bottom:-90px; right:-60px; animation:drift 19s ease-in-out infinite reverse;}
+    .b3{width:220px;height:220px;background:var(--ochre); opacity:.26; top:42%; right:-80px; animation:drift 22s ease-in-out infinite;}
+    .b4{width:200px;height:200px;background:var(--coral); opacity:.18; bottom:16%; left:-70px; animation:drift 18s ease-in-out infinite reverse;}
+    @keyframes drift{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(26px,-30px) scale(1.08);}}
+
+    .wrap{position:relative; z-index:1; width:100%; max-width:480px;}
+    .qhead{display:flex; flex-direction:column; gap:14px; margin-bottom:26px;}
+    .brand{display:flex; align-items:center; justify-content:center; gap:9px; font-weight:800; letter-spacing:-.3px; font-size:17px;}
+    .brand img{width:30px; height:30px; border-radius:9px; box-shadow:0 6px 14px rgba(166,30,77,.22);}
+    .progress{position:relative; height:9px; border-radius:100px; background:#F2DDE7; overflow:hidden; box-shadow:inset 0 1px 2px rgba(43,33,27,.06);}
+    .bar{position:absolute; inset:0 auto 0 0; width:0%; border-radius:100px; background:linear-gradient(90deg,var(--coral),var(--coral-deep)); transition:width .5s cubic-bezier(.4,.9,.3,1);}
+    .step-count{text-align:center; font-size:12.5px; font-weight:600; color:var(--muted); letter-spacing:.3px;}
+
+    .stage{position:relative;}
+    .card{will-change:transform,opacity;}
+    .card.exit{opacity:0; transform:translateY(-14px); transition:opacity .2s ease, transform .2s ease;}
+    .eyebrow{display:block; text-align:center; font-size:12.5px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--coral-deep); margin-bottom:10px;}
+    h1{margin:0 auto 8px; max-width:14ch; text-align:center; font-weight:800; letter-spacing:-.8px; line-height:1.12; font-size:clamp(25px,6.6vw,34px);}
+    h1 .grad{background:linear-gradient(100deg,var(--coral),var(--coral-deep)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+    .qsub{margin:0 auto 24px; max-width:30ch; text-align:center; color:var(--soft); font-size:14.5px; line-height:1.5;}
+
+    .opts{display:flex; flex-direction:column; gap:12px;}
+    .opt{display:flex; align-items:center; gap:14px; width:100%; text-align:left; cursor:pointer;
+      background:var(--paper); border:1.5px solid var(--hairline); border-radius:18px; padding:16px 18px;
+      font-family:inherit; font-size:16px; font-weight:600; color:var(--ink); box-shadow:0 6px 16px rgba(43,33,27,.05);
+      transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease;
+      opacity:0; transform:translateY(14px); animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards;}
+    .opt:hover{transform:translateY(-2px); box-shadow:0 12px 26px rgba(43,33,27,.10); border-color:#EFC9DA;}
+    .opt:active{transform:scale(.985);}
+    .opt .emoji{width:42px; height:42px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:22px; background:var(--peach); border-radius:13px;}
+    .opt .arrow{margin-left:auto; color:var(--muted); transition:transform .14s ease, color .14s ease;}
+    .opt:hover .arrow{color:var(--coral); transform:translateX(3px);}
+    .opt.selected{border-color:var(--coral); background:linear-gradient(180deg,#FFF,#FFF0F5); box-shadow:0 14px 30px rgba(214,51,108,.22);}
+    .opt.selected .emoji{background:var(--coral); color:#fff;}
+    .opt.selected .arrow{color:var(--coral);}
+    @keyframes rise{to{opacity:1; transform:translateY(0);}}
+
+    .trust{margin-top:24px; text-align:center; font-size:12.5px; color:var(--muted);}
+    .trust .s{color:var(--ochre); letter-spacing:1px;}
+
+    .finish{text-align:center; padding-top:18px;}
+    .spinner{width:74px; height:74px; margin:6px auto 22px; position:relative;}
+    .spinner::before{content:""; position:absolute; inset:0; border-radius:50%; border:5px solid #F2D7E2; border-top-color:var(--coral); animation:spin .9s linear infinite;}
+    .spinner .gn{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:30px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .finish h1{max-width:18ch;}
+    .finish .dots{display:inline-flex; gap:6px; margin-top:6px;}
+    .finish .dots i{width:7px; height:7px; border-radius:50%; background:var(--coral); opacity:.4; animation:blink 1.2s infinite;}
+    .finish .dots i:nth-child(2){animation-delay:.2s;} .finish .dots i:nth-child(3){animation-delay:.4s;}
+    @keyframes blink{0%,100%{opacity:.35; transform:scale(.9);}50%{opacity:1; transform:scale(1.15);}}
+
+    @media (prefers-reduced-motion: reduce){
+      .blob,.opt,.bar,.spinner::before,.finish .dots i{animation:none !important; transition:none !important;}
+      .opt{opacity:1; transform:none;}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span></div>
+
+  <main class="wrap">
+    <div class="qhead">
+      <div class="brand"><img src="/img/icon.png" alt="StitchMind"> StitchMind</div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="step-count" id="stepCount"></div>
+    </div>
+    <section class="stage" id="stage"></section>
+  </main>
+
+  <script>
+    var VARIANT = "pattern";
+    var REDIRECT = "/invite";
+    var QUESTIONS = [
+      {
+        eyebrow: "The magic",
+        q: ['Found a piece you love — but ', '<span class="grad">no pattern</span>?'],
+        sub: "You're not alone. Here's the fix.",
+        opts: [
+          { emoji: "🤩", label: "Yes, all the time!" },
+          { emoji: "📌", label: "I save pins I never make" },
+          { emoji: "😩", label: "Ugh, so often" },
+          { emoji: "🧶", label: "Story of my crafting life" }
+        ]
+      },
+      {
+        eyebrow: "How it works",
+        q: ['Snap a photo → get the ', '<span class="grad">full pattern</span>'],
+        sub: "Our AI reads any piece and writes it out, row by row. What would you point your camera at first?",
+        opts: [
+          { emoji: "🧸", label: "A cute amigurumi" },
+          { emoji: "🧣", label: "A scarf or blanket" },
+          { emoji: "👕", label: "A sweater or top" },
+          { emoji: "🧦", label: "Small things — socks, hats" }
+        ]
+      },
+      {
+        eyebrow: "Almost there",
+        q: ['How soon do you want to ', '<span class="grad">start</span>?'],
+        opts: [
+          { emoji: "🔥", label: "Right now" },
+          { emoji: "📅", label: "This week" },
+          { emoji: "☕", label: "This weekend" },
+          { emoji: "✨", label: "Just exploring for now" }
+        ]
+      }
+    ];
+
+    var stage = document.getElementById('stage');
+    var bar = document.getElementById('bar');
+    var stepCount = document.getElementById('stepCount');
+    var answers = [];
+    var i = 0;
+    var locked = false;
+
+    try { gtag('event', 'quiz_start', { quiz_variant: VARIANT, transport_type: 'beacon' }); } catch (e) {}
+
+    function setProgress(n){
+      bar.style.width = Math.round((n / QUESTIONS.length) * 100) + '%';
+      stepCount.textContent = Math.min(n + 1, QUESTIONS.length) + ' / ' + QUESTIONS.length;
+    }
+
+    function render(){
+      var Q = QUESTIONS[i];
+      setProgress(i);
+      var html = '<div class="card" id="card">'
+        + '<span class="eyebrow">' + Q.eyebrow + '</span>'
+        + '<h1>' + Q.q.join('') + '</h1>'
+        + (Q.sub ? '<p class="qsub">' + Q.sub + '</p>' : '')
+        + '<div class="opts">';
+      Q.opts.forEach(function(o, idx){
+        html += '<button class="opt" data-idx="' + idx + '" style="animation-delay:' + (idx * 70 + 60) + 'ms">'
+          + '<span class="emoji">' + o.emoji + '</span>'
+          + '<span class="lbl">' + o.label + '</span>'
+          + '<svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>'
+          + '</button>';
+      });
+      html += '</div>'
+        + '<div class="trust"><span class="s">★★★★★</span> Join thousands of makers learning with StitchMind</div>'
+        + '</div>';
+      stage.innerHTML = html;
+
+      var card = document.getElementById('card');
+      stage.querySelectorAll('.opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (locked) return;
+          locked = true;
+          btn.classList.add('selected');
+          answers[i] = btn.querySelector('.lbl').textContent;
+          try { gtag('event', 'quiz_answer', { quiz_variant: VARIANT, question: i + 1, answer: answers[i], transport_type: 'beacon' }); } catch (e) {}
+          setTimeout(function(){
+            card.classList.add('exit');
+            setTimeout(function(){
+              i++;
+              locked = false;
+              if (i < QUESTIONS.length) render();
+              else finish();
+            }, 220);
+          }, 260);
+        });
+      });
+    }
+
+    function finish(){
+      setProgress(QUESTIONS.length);
+      try { gtag('event', 'quiz_complete', { quiz_variant: VARIANT, transport_type: 'beacon' }); } catch (e) {}
+      stage.innerHTML = '<div class="card finish" id="card">'
+        + '<div class="spinner"><span class="gn">📸</span></div>'
+        + '<span class="eyebrow">All set</span>'
+        + '<h1>Your <span class="grad">AI pattern finder</span> is ready</h1>'
+        + '<p class="qsub">Point, snap, and get the written pattern — plus lessons and a row counter. Taking you to the app<span class="dots"><i></i><i></i><i></i></span></p>'
+        + '</div>';
+      setTimeout(function(){ location.replace(REDIRECT); }, 2100);
+    }
+
+    render();
+  </script>
+</body>
+</html>

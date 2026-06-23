@@ -1,0 +1,98 @@
+# Deploy no servidor (stitchmindapp.com → :3000 via Caddy já configurado).
+# A API escuta na :3000 do host; infra (db/cache/storage) fica interna ao docker.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sm-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: stitchmind
+      POSTGRES_PASSWORD: stitchmind_dev_pw
+      POSTGRES_DB: stitchmind
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stitchmind"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  cache:
+    image: redis:7-alpine
+    container_name: sm-prod-cache
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  storage:
+    image: minio/minio:latest
+    container_name: sm-prod-storage
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - storage_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  storage-init:
+    image: minio/mc:latest
+    container_name: sm-prod-storage-init
+    depends_on:
+      storage:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://storage:9000 minioadmin minioadmin;
+      mc mb -p local/stitchmind-uploads;
+      mc mb -p local/stitchmind-public;
+      mc anonymous set download local/stitchmind-public;
+      exit 0;
+      "
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sm-prod-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://stitchmind:stitchmind_dev_pw@db:5432/stitchmind
+      REDIS_URL: redis://cache:6379
+      S3_ENDPOINT: http://storage:9000
+      RUN_MIGRATIONS: "true"
+    ports:
+      # NOTE: a API fica exposta em 0.0.0.0:3000 (HTTP puro). O ideal é só
+      # loopback, MAS o Caddy roda em container (faithmatch-caddy-1) e alcança
+      # a API pela porta publicada do host — bind em 127.0.0.1 quebraria o
+      # proxy. Hardening pendente: colocar a API e o Caddy na mesma rede docker
+      # e proxiar por nome de serviço (sm-prod-api:8000), aí remover o publish.
+      - "3000:8000"
+    volumes:
+      # serve as páginas web direto do host (sem rebuild a cada mudança)
+      - ./public:/app/public:ro
+      # service account do Firebase (push) — montado, não embutido na imagem
+      - ./secrets:/app/secrets:ro
+
+volumes:
+  db_data:
+  storage_data:

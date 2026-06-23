@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StitchMind — Análise</title>
+  <style>
+    :root {
+      --bg: #f5f1ea;
+      --ink: #1a1815;
+      --muted: #76706a;
+      --line: #d8d2c7;
+      --accent: #b3441f;
+      --ok: #2f7a4a;
+      --warn: #b8870b;
+      --bad: #a8322a;
+      --card: #fffdf9;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: ui-serif, Georgia, 'Iowan Old Style', 'Apple Garamond', serif; -webkit-font-smoothing: antialiased; }
+    .mono, code, pre { font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+    .container { max-width: 1080px; margin: 0 auto; padding: 48px 32px 96px; }
+    header { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 40px; }
+    h1 { font-size: 32px; font-weight: 600; margin: 0; letter-spacing: -0.02em; }
+    .health { font-size: 12px; color: var(--muted); }
+    .health b { color: var(--ink); font-weight: 600; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 6px; vertical-align: middle; }
+    .dot.ok { background: var(--ok); }
+    .dot.off { background: var(--bad); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
+    h2 { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 16px; color: var(--muted); }
+    .drop {
+      border: 2px dashed var(--line); border-radius: 8px; padding: 48px 24px; text-align: center;
+      cursor: pointer; transition: border-color .15s, background .15s;
+    }
+    .drop:hover, .drop.over { border-color: var(--accent); background: #faf6ee; }
+    .drop.has { padding: 12px; }
+    .drop input { display: none; }
+    .drop p { margin: 0; color: var(--muted); font-size: 14px; }
+    .drop p strong { color: var(--ink); font-weight: 600; }
+    .preview { display: none; margin-top: 16px; }
+    .preview.show { display: block; }
+    .preview img { width: 100%; height: auto; border-radius: 6px; display: block; }
+    button {
+      margin-top: 16px; width: 100%; padding: 14px; font-size: 15px; font-weight: 600;
+      background: var(--ink); color: var(--bg); border: 0; border-radius: 6px; cursor: pointer;
+      font-family: inherit; transition: opacity .15s;
+    }
+    button:hover { opacity: 0.88; }
+    button:disabled { opacity: 0.4; cursor: wait; }
+    .metric-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-bottom: 1px dotted var(--line); font-size: 14px; }
+    .metric-row:last-child { border-bottom: 0; }
+    .metric-row span { color: var(--muted); }
+    .metric-row b { font-size: 18px; font-weight: 600; }
+    .ratings { display: flex; gap: 8px; margin-top: 12px; }
+    .pill { font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); }
+    .pill.ok { background: #e8f3ec; color: var(--ok); border-color: #b6d8c1; }
+    .pill.warn { background: #f7ecd1; color: var(--warn); border-color: #e3cf95; }
+    .pill.bad { background: #f4dcd9; color: var(--bad); border-color: #dfb0aa; }
+    .results { margin-top: 40px; display: none; }
+    .results.show { display: block; }
+    .tier { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+    .tier-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+    .tier h3 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+    .tier .conf { font-size: 11px; color: var(--muted); }
+    .field { display: grid; grid-template-columns: 180px 1fr; gap: 16px; padding: 8px 0; border-bottom: 1px dotted var(--line); font-size: 14px; }
+    .field:last-child { border-bottom: 0; }
+    .field-label { color: var(--muted); }
+    .stitch-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .stitch { background: var(--bg); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; font-size: 12px; }
+    .swatch-list { display: flex; gap: 6px; flex-wrap: wrap; }
+    .swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid var(--line); }
+    .pattern-section { margin-top: 16px; }
+    .pattern-section h4 { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+    .pattern-rows { font-family: ui-monospace, monospace; font-size: 12px; background: var(--bg); padding: 12px; border-radius: 6px; }
+    .pattern-rows div { padding: 2px 0; }
+    .warning { background: #f7ecd1; color: var(--warn); padding: 10px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    .feedback-row { display: flex; gap: 8px; margin-top: 12px; }
+    .feedback-row button { flex: 1; margin: 0; padding: 8px 12px; font-size: 12px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+    .feedback-row button:hover { background: var(--card); }
+    .feedback-row button.sent { background: var(--ok); color: var(--card); border-color: var(--ok); }
+    .err { background: #f4dcd9; color: var(--bad); padding: 12px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
+    .loading { text-align: center; padding: 32px; color: var(--muted); font-size: 14px; }
+    .loading::after { content: ' '; display: inline-block; animation: dots 1.4s infinite; }
+    @keyframes dots { 0%{content:' .'} 33%{content:' ..'} 66%{content:' ...'} }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>StitchMind</h1>
+      <div class="health" id="health"><span class="dot"></span>conectando…</div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Analisar peça</h2>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="image/jpeg,image/png,image/webp" />
+          <p><strong>Solte uma foto aqui</strong><br/>ou clique para escolher (jpeg, png, webp · até 8MB)</p>
+          <div class="preview" id="preview"><img id="previewImg" alt="" /></div>
+        </label>
+        <button id="analyzeBtn" disabled>Selecione uma foto</button>
+      </section>
+
+      <section class="card">
+        <h2>Métricas</h2>
+        <div class="metric-row"><span>Total de análises</span><b id="m-total">—</b></div>
+        <div class="metric-row"><span>Feedbacks recebidos</span><b id="m-feedback">—</b></div>
+        <div class="metric-row"><span>Última análise</span><b id="m-last">—</b></div>
+        <div class="ratings" id="m-ratings">
+          <span class="pill ok">correto <b id="r-ok">0</b></span>
+          <span class="pill warn">parcial <b id="r-partial">0</b></span>
+          <span class="pill bad">errado <b id="r-bad">0</b></span>
+        </div>
+      </section>
+    </div>
+
+    <div class="results" id="results"></div>
+  </div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let lastAnalysisId = null;
+
+async function checkHealth() {
+  try {
+    const r = await fetch('/health').then(r => r.json());
+    $('#health').innerHTML = `<span class="dot ok"></span><b>${r.provider}</b> · ${r.model}`;
+  } catch {
+    $('#health').innerHTML = `<span class="dot off"></span>offline`;
+  }
+}
+
+async function loadMetrics() {
+  try {
+    const r = await fetch('/metrics').then(r => r.json());
+    $('#m-total').textContent = r.total_analyses;
+    $('#m-feedback').textContent = r.total_feedback;
+    $('#m-last').textContent = r.last_at ? new Date(r.last_at).toLocaleString('pt-BR') : '—';
+    $('#r-ok').textContent = r.ratings.correct;
+    $('#r-partial').textContent = r.ratings.partial;
+    $('#r-bad').textContent = r.ratings.wrong;
+  } catch {}
+}
+
+const drop = $('#drop'), file = $('#file'), btn = $('#analyzeBtn'),
+      previewBox = $('#preview'), previewImg = $('#previewImg');
+
+['dragenter','dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', ev => { if (ev.dataTransfer.files[0]) setFile(ev.dataTransfer.files[0]); });
+file.addEventListener('change', () => { if (file.files[0]) setFile(file.files[0]); });
+
+function setFile(f) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    previewImg.src = reader.result;
+    previewBox.classList.add('show');
+    drop.classList.add('has');
+    btn.disabled = false;
+    btn.textContent = `Analisar (${(f.size/1024/1024).toFixed(1)}MB)`;
+    file._chosen = f;
+  };
+  reader.readAsDataURL(f);
+}
+
+btn.addEventListener('click', async () => {
+  const f = file._chosen || file.files[0];
+  if (!f) return;
+  btn.disabled = true; btn.textContent = 'Analisando…';
+  $('#results').innerHTML = '<div class="loading">Modelo processando a imagem</div>';
+  $('#results').classList.add('show');
+  const fd = new FormData();
+  fd.append('image', f);
+  try {
+    const res = await fetch('/analyze', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'falha');
+    lastAnalysisId = data.analysis_id;
+    renderResult(data);
+    loadMetrics();
+  } catch (e) {
+    $('#results').innerHTML = `<div class="err">Erro: ${e.message}</div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analisar outra';
+  }
+});
+
+function fmtConf(v) { return (v*100).toFixed(0) + '%'; }
+function esc(s) { return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function renderResult(d) {
+  const t1 = d.tier1_identification, t2 = d.tier2_analysis, t3 = d.tier3_draft_pattern;
+  const swatches = (t1.color_palette || []).map(c => `<span class="swatch" style="background:${esc(c)}" title="${esc(c)}"></span>`).join('');
+  const stitches = t1.main_stitches.map(s => `<span class="stitch">${esc(s.abbrev)} · ${esc(s.name_pt)} <small>(${fmtConf(s.confidence)})</small></span>`).join('');
+
+  const sectionsHtml = t3.sections.map(sec => `
+    <div class="pattern-section">
+      <h4>${esc(sec.title)}</h4>
+      <div class="pattern-rows">${sec.rows.map(r => `<div>R${r.row}: ${esc(r.instruction)}${r.stitch_count != null ? ` <span style="color:var(--muted)">(${r.stitch_count} pts)</span>` : ''}</div>`).join('')}</div>
+    </div>
+  `).join('');
+
+  $('#results').innerHTML = `
+    <div class="tier">
+      <div class="tier-head"><h3>Tier 1 — Identificação</h3><span class="conf">${d.provider} · ${d.model} · ${d.latency_ms}ms</span></div>
+      <div class="field"><span class="field-label">Técnica</span><div>${esc(t1.technique)} <small style="color:var(--muted)">(${fmtConf(t1.technique_confidence)})</small></div></div>
+      <div class="field"><span class="field-label">Tipo de peça</span><div>${esc(t1.piece_type)} <small style="color:var(--muted)">(${fmtConf(t1.piece_type_confidence)})</small></div></div>
+      <div class="field"><span class="field-label">Pontos principais</span><div class="stitch-list">${stitches}</div></div>
+      <div class="field"><span class="field-label">Fio estimado</span><div>${esc(t1.estimated_yarn)}</div></div>
+      ${swatches ? `<div class="field"><span class="field-label">Paleta</span><div class="swatch-list">${swatches}</div></div>` : ''}
+    </div>
+
+    <div class="tier">
+      <div class="tier-head"><h3>Tier 2 — Análise estrutural</h3><span class="conf">confiança ${fmtConf(t2.overall_confidence)}</span></div>
+      <div class="field"><span class="field-label">Notas</span><div>${esc(t2.structure_notes)}</div></div>
+      ${t2.estimated_dimensions_cm.length ? `<div class="field"><span class="field-label">Dimensões (cm)</span><div>${t2.estimated_dimensions_cm.join(' × ')}</div></div>` : ''}
+      ${t2.estimated_yarn_grams != null ? `<div class="field"><span class="field-label">Fio (g)</span><div>${t2.estimated_yarn_grams}</div></div>` : ''}
+      ${t2.suggested_needle_mm != null ? `<div class="field"><span class="field-label">Agulha (mm)</span><div>${t2.suggested_needle_mm}</div></div>` : ''}
+      <div class="field"><span class="field-label">Dificuldade</span><div>${esc(t2.estimated_difficulty)}</div></div>
+      ${t2.estimated_hours != null ? `<div class="field"><span class="field-label">Horas estimadas</span><div>${t2.estimated_hours}h</div></div>` : ''}
+      <div class="feedback-row" data-section="tier2_analysis">
+        <button data-r="correct">👍 Correto</button>
+        <button data-r="partial">⚖️ Parcial</button>
+        <button data-r="wrong">👎 Errado</button>
+      </div>
+    </div>
+
+    <div class="tier">
+      <div class="tier-head"><h3>Tier 3 — Rascunho de receita</h3><span class="conf">confiança ${fmtConf(t3.overall_confidence)}</span></div>
+      ${t3.warning ? `<div class="warning">⚠ ${esc(t3.warning)}</div>` : ''}
+      ${sectionsHtml}
+      <div class="feedback-row" data-section="tier3_draft_pattern">
+        <button data-r="correct">👍 Correto</button>
+        <button data-r="partial">⚖️ Parcial</button>
+        <button data-r="wrong">👎 Errado</button>
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.feedback-row button').forEach(b => {
+    b.addEventListener('click', async () => {
+      const section = b.parentElement.dataset.section;
+      const rating = b.dataset.r;
+      try {
+        await fetch('/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ analysis_id: lastAnalysisId, section, rating })
+        });
+        b.classList.add('sent');
+        b.parentElement.querySelectorAll('button').forEach(o => { if (o !== b) o.disabled = true; });
+        loadMetrics();
+      } catch {}
+    });
+  });
+}
+
+checkHealth();
+loadMetrics();
+setInterval(loadMetrics, 15000);
+</script>
+</body>
+</html>

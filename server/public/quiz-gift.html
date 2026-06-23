@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#FCF0F3" />
+  <title>StitchMind · Make something handmade</title>
+
+  <script>
+    window.GA_MEASUREMENT_ID = 'G-CTD14EQRW9';
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    (function () {
+      var id = window.GA_MEASUREMENT_ID;
+      if (!id || id.indexOf('G-') !== 0 || id === 'G-XXXXXXXXXX') return;
+      var s = document.createElement('script');
+      s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      gtag('config', id, { transport_type: 'beacon' });
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --cream:#FCF0F3; --peach:#FFF1F5; --linen:#F8DDE6;
+      --ink:#2B1B22; --soft:#6B5159; --muted:#AC8E98;
+      --coral:#E64980; --coral-deep:#C2255C; --pink:#FAA2C1; --ochre:#FF8787;
+      --paper:#FFFFFF; --hairline:#F4DAE3;
+    }
+    *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;}
+    body{
+      margin:0; min-height:100svh; overflow-x:hidden;
+      font-family:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      color:var(--ink);
+      background:radial-gradient(1100px 620px at 50% -12%, #FFF9FB 0%, var(--peach) 38%, var(--cream) 70%, var(--linen) 100%);
+      display:flex; align-items:flex-start; justify-content:center;
+      padding:clamp(20px,5vw,48px) 20px;
+    }
+    .bg{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+    .blob{position:absolute; border-radius:50%; filter:blur(60px); opacity:.40; will-change:transform;}
+    .b1{width:340px;height:340px;background:var(--coral);  top:-90px;  left:-70px;  animation:drift 16s ease-in-out infinite;}
+    .b2{width:300px;height:300px;background:var(--pink);   bottom:-90px; right:-60px; animation:drift 19s ease-in-out infinite reverse;}
+    .b3{width:220px;height:220px;background:var(--ochre); opacity:.26; top:42%; right:-80px; animation:drift 22s ease-in-out infinite;}
+    .b4{width:200px;height:200px;background:var(--coral); opacity:.16; bottom:16%; left:-70px; animation:drift 18s ease-in-out infinite reverse;}
+    @keyframes drift{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(26px,-30px) scale(1.08);}}
+
+    .wrap{position:relative; z-index:1; width:100%; max-width:480px;}
+    .qhead{display:flex; flex-direction:column; gap:14px; margin-bottom:26px;}
+    .brand{display:flex; align-items:center; justify-content:center; gap:9px; font-weight:800; letter-spacing:-.3px; font-size:17px;}
+    .brand img{width:30px; height:30px; border-radius:9px; box-shadow:0 6px 14px rgba(194,37,92,.22);}
+    .progress{position:relative; height:9px; border-radius:100px; background:#F4DAE3; overflow:hidden; box-shadow:inset 0 1px 2px rgba(43,27,34,.06);}
+    .bar{position:absolute; inset:0 auto 0 0; width:0%; border-radius:100px; background:linear-gradient(90deg,var(--coral),var(--coral-deep)); transition:width .5s cubic-bezier(.4,.9,.3,1);}
+    .step-count{text-align:center; font-size:12.5px; font-weight:600; color:var(--muted); letter-spacing:.3px;}
+
+    .stage{position:relative;}
+    .card{will-change:transform,opacity;}
+    .card.exit{opacity:0; transform:translateY(-14px); transition:opacity .2s ease, transform .2s ease;}
+    .eyebrow{display:block; text-align:center; font-size:12.5px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--coral-deep); margin-bottom:10px;}
+    h1{margin:0 auto 8px; max-width:14ch; text-align:center; font-weight:800; letter-spacing:-.8px; line-height:1.12; font-size:clamp(25px,6.6vw,34px);}
+    h1 .grad{background:linear-gradient(100deg,var(--coral),var(--coral-deep)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+    .qsub{margin:0 auto 24px; max-width:30ch; text-align:center; color:var(--soft); font-size:14.5px; line-height:1.5;}
+
+    .opts{display:flex; flex-direction:column; gap:12px;}
+    .opt{display:flex; align-items:center; gap:14px; width:100%; text-align:left; cursor:pointer;
+      background:var(--paper); border:1.5px solid var(--hairline); border-radius:100px; padding:14px 20px;
+      font-family:inherit; font-size:16px; font-weight:600; color:var(--ink); box-shadow:0 6px 16px rgba(43,27,34,.05);
+      transition:transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease;
+      opacity:0; transform:translateY(14px); animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards;}
+    .opt:hover{transform:translateY(-2px); box-shadow:0 12px 26px rgba(43,27,34,.10); border-color:#F0C2D2;}
+    .opt:active{transform:scale(.985);}
+    .opt .emoji{width:40px; height:40px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:21px; background:var(--peach); border-radius:50%;}
+    .opt .arrow{margin-left:auto; color:var(--muted); transition:transform .14s ease, color .14s ease;}
+    .opt:hover .arrow{color:var(--coral); transform:translateX(3px);}
+    .opt.selected{border-color:var(--coral); background:linear-gradient(180deg,#FFF,#FFEFF4); box-shadow:0 14px 30px rgba(230,73,128,.22);}
+    .opt.selected .emoji{background:var(--coral); color:#fff;}
+    .opt.selected .arrow{color:var(--coral);}
+    @keyframes rise{to{opacity:1; transform:translateY(0);}}
+
+    /* Testimonial card (social proof) */
+    .testi{margin-top:22px; display:flex; gap:12px; align-items:flex-start; text-align:left;
+      background:linear-gradient(180deg,#FFFFFF,#FFF5F8); border:1.5px solid var(--hairline);
+      border-radius:18px; padding:14px 16px; box-shadow:0 8px 20px rgba(43,27,34,.06);
+      opacity:0; transform:translateY(10px); animation:rise .6s ease .35s forwards;}
+    .testi .av{width:40px; height:40px; flex:0 0 auto; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:20px; background:linear-gradient(150deg,var(--pink),var(--coral)); color:#fff;}
+    .testi .body{flex:1; min-width:0;}
+    .testi .stars{color:var(--ochre); font-size:12px; letter-spacing:1px; line-height:1;}
+    .testi .quote{margin:4px 0 4px; font-size:13.5px; line-height:1.45; color:var(--ink); font-weight:500;}
+    .testi .who{font-size:11.5px; color:var(--muted); font-weight:600;}
+
+    .finish{text-align:center; padding-top:18px;}
+    .spinner{width:74px; height:74px; margin:6px auto 22px; position:relative;}
+    .spinner::before{content:""; position:absolute; inset:0; border-radius:50%; border:5px solid #F4D5E0; border-top-color:var(--coral); animation:spin .9s linear infinite;}
+    .spinner .gn{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:30px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .finish h1{max-width:18ch;}
+    .finish .dots{display:inline-flex; gap:6px; margin-top:6px;}
+    .finish .dots i{width:7px; height:7px; border-radius:50%; background:var(--coral); opacity:.4; animation:blink 1.2s infinite;}
+    .finish .dots i:nth-child(2){animation-delay:.2s;} .finish .dots i:nth-child(3){animation-delay:.4s;}
+    @keyframes blink{0%,100%{opacity:.35; transform:scale(.9);}50%{opacity:1; transform:scale(1.15);}}
+
+    @media (prefers-reduced-motion: reduce){
+      .blob,.opt,.bar,.spinner::before,.finish .dots i,.testi{animation:none !important; transition:none !important;}
+      .opt,.testi{opacity:1; transform:none;}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span></div>
+
+  <main class="wrap">
+    <div class="qhead">
+      <div class="brand"><img src="/img/icon.png" alt="StitchMind"> StitchMind</div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="step-count" id="stepCount"></div>
+    </div>
+    <section class="stage" id="stage"></section>
+  </main>
+
+  <script>
+    var VARIANT = "gift";
+    var REDIRECT = "/invite";
+    var QUESTIONS = [
+      {
+        eyebrow: "Let's begin",
+        q: ['Who are you ', '<span class="grad">making</span> for?'],
+        sub: "Handmade means so much more.",
+        opts: [
+          { emoji: "🎁", label: "A gift for someone special" },
+          { emoji: "💕", label: "A little treat for me" },
+          { emoji: "👶", label: "A new baby" },
+          { emoji: "🏡", label: "Cozy touches for home" }
+        ]
+      },
+      {
+        eyebrow: "The feeling",
+        q: ['What do you want from your ', '<span class="grad">craft time</span>?'],
+        opts: [
+          { emoji: "☕", label: "Calm & cozy" },
+          { emoji: "🧘", label: "Stress relief" },
+          { emoji: "🎉", label: "Fun & creative" },
+          { emoji: "🤍", label: "Me-time that matters" }
+        ]
+      },
+      {
+        eyebrow: "Last one",
+        q: ['When will you ', '<span class="grad">stitch</span>?'],
+        opts: [
+          { emoji: "🌙", label: "Evenings to unwind" },
+          { emoji: "☀️", label: "Weekend mornings" },
+          { emoji: "🚆", label: "On the go" },
+          { emoji: "📺", label: "While watching shows" }
+        ]
+      }
+    ];
+
+    // Social proof — one testimonial per step.
+    var TESTIMONIALS = [
+      { emoji: "🌷", stars: "★★★★★", quote: "Made my mum a scarf for her birthday — she cried. Never thought I could.", who: "Hannah · first project" },
+      { emoji: "🧶", stars: "★★★★★", quote: "My evenings finally feel like mine again. So calming.", who: "Priya · daily user" },
+      { emoji: "🎀", stars: "★★★★★", quote: "Finished a baby blanket before the due date. The counter saved me!", who: "Mei · new auntie" }
+    ];
+
+    var stage = document.getElementById('stage');
+    var bar = document.getElementById('bar');
+    var stepCount = document.getElementById('stepCount');
+    var answers = [];
+    var i = 0;
+    var locked = false;
+
+    try { gtag('event', 'quiz_start', { quiz_variant: VARIANT, transport_type: 'beacon' }); } catch (e) {}
+
+    function setProgress(n){
+      bar.style.width = Math.round((n / QUESTIONS.length) * 100) + '%';
+      stepCount.textContent = Math.min(n + 1, QUESTIONS.length) + ' / ' + QUESTIONS.length;
+    }
+
+    function render(){
+      var Q = QUESTIONS[i];
+      var T = TESTIMONIALS[i % TESTIMONIALS.length];
+      setProgress(i);
+      var html = '<div class="card" id="card">'
+        + '<span class="eyebrow">' + Q.eyebrow + '</span>'
+        + '<h1>' + Q.q.join('') + '</h1>'
+        + (Q.sub ? '<p class="qsub">' + Q.sub + '</p>' : '')
+        + '<div class="opts">';
+      Q.opts.forEach(function(o, idx){
+        html += '<button class="opt" data-idx="' + idx + '" style="animation-delay:' + (idx * 70 + 60) + 'ms">'
+          + '<span class="emoji">' + o.emoji + '</span>'
+          + '<span class="lbl">' + o.label + '</span>'
+          + '<svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>'
+          + '</button>';
+      });
+      html += '</div>'
+        + '<div class="testi">'
+        +   '<div class="av">' + T.emoji + '</div>'
+        +   '<div class="body"><div class="stars">' + T.stars + '</div>'
+        +     '<p class="quote">“' + T.quote + '”</p>'
+        +     '<div class="who">' + T.who + '</div></div>'
+        + '</div>'
+        + '</div>';
+      stage.innerHTML = html;
+
+      var card = document.getElementById('card');
+      stage.querySelectorAll('.opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (locked) return;
+          locked = true;
+          btn.classList.add('selected');
+          answers[i] = btn.querySelector('.lbl').textContent;
+          try { gtag('event', 'quiz_answer', { quiz_variant: VARIANT, question: i + 1, answer: answers[i], transport_type: 'beacon' }); } catch (e) {}
+          setTimeout(function(){
+            card.classList.add('exit');
+            setTimeout(function(){
+              i++;
+              locked = false;
+              if (i < QUESTIONS.length) render();
+              else finish();
+            }, 220);
+          }, 260);
+        });
+      });
+    }
+
+    function finish(){
+      setProgress(QUESTIONS.length);
+      try { gtag('event', 'quiz_complete', { quiz_variant: VARIANT, transport_type: 'beacon' }); } catch (e) {}
+      stage.innerHTML = '<div class="card finish" id="card">'
+        + '<div class="spinner"><span class="gn">🎁</span></div>'
+        + '<span class="eyebrow">All set</span>'
+        + '<h1>Your <span class="grad">first handmade</span> piece awaits</h1>'
+        + '<p class="qsub">Cozy beginner lessons, AI help, and a counter so you actually finish it. Taking you to the app<span class="dots"><i></i><i></i><i></i></span></p>'
+        + '</div>';
+      setTimeout(function(){ location.replace(REDIRECT); }, 2100);
+    }
+
+    render();
+  </script>
+</body>
+</html>

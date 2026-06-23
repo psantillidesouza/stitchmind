@@ -1,0 +1,6 @@
+# Renomeie para key.properties e preencha com a SUA keystore de upload.
+# (NÃO comitar — já está no .gitignore.)
+storePassword=SENHA_DA_KEYSTORE
+keyPassword=SENHA_DA_CHAVE
+keyAlias=upload
+storeFile=/caminho/absoluto/para/upload-keystore.jks

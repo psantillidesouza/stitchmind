@@ -1,0 +1,27 @@
+{
+  "name": "stitchmind-server",
+  "version": "0.1.0",
+  "description": "Backend da plataforma StitchMind: auth, aulas, telemetria, crashes, IA.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "migrate": "bun run src/migrate.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@google/genai": "^0.7.0",
+    "firebase-admin": "^12.7.0",
+    "hono": "^4.6.10",
+    "zod": "^3.23.8",
+    "postgres": "^3.4.5",
+    "jose": "^5.9.6",
+    "minio": "^8.0.2",
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.13",
+    "typescript": "^5.6.3"
+  }
+}

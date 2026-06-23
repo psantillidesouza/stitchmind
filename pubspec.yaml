@@ -1,0 +1,120 @@
+name: stitchmind
+description: Crochê, Tricô & Knit — biblioteca de pontos, contador e gerenciador de projetos.
+publish_to: "none"
+version: 1.5.1+7
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+
+  # Navigation
+  go_router: ^14.2.7
+
+  # Local Persistence (preparado, ainda não usado no protótipo)
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.3.2
+  path_provider: ^2.1.0 # diretório persistente p/ fotos das aulas salvas
+
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  collection: ^1.18.0
+  url_launcher: ^6.3.0 # abrir Termos de Uso / Política de Privacidade na paywall
+
+  # Keep screen awake during active counter
+  wakelock_plus: ^1.2.8
+
+  # AI analysis: capture image + HTTP multipart
+  image_picker: ^1.1.2
+  # Import de receita em PDF
+  file_picker: ^8.1.2
+  http: ^1.2.2
+  http_parser: ^4.0.0 # MediaType para definir o content-type do upload
+
+  # Converte toda foto escolhida p/ WebP antes de enviar (economia de dados).
+  flutter_image_compress: ^2.3.0
+
+  # Plataforma: telemetria (device + versão do app)
+  device_info_plus: ^10.1.2
+  package_info_plus: ^8.0.2
+
+  # Realtime: presença via WebSocket
+  web_socket_channel: ^3.0.1
+  # Assinaturas / paywall (RevenueCat)
+  purchases_flutter: ^8.0.0
+  # Pedido de avaliação nativo (App Store / Google Play)
+  in_app_review: ^2.0.9
+
+  firebase_core: ^4.10.0
+  firebase_auth: ^6.5.2
+  # Push notifications (FCM) enviadas pelo painel admin
+  firebase_messaging: ^16.0.0
+  google_sign_in: ^6.2.1
+  sign_in_with_apple: ^7.0.1
+  crypto: ^3.0.7
+  gpt_markdown: ^1.1.7
+  firebase_analytics: ^12.4.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/data/
+    - assets/onboarding/
+    - assets/illustrations/
+
+  # Fonte única do app: Poppins (um arquivo por peso).
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Poppins-ExtraBold.ttf
+          weight: 800
+
+# ─── Ícone do app (gere com: dart run flutter_launcher_icons) ──────────
+# Requer assets/branding/app_icon.png (1024x1024) e _foreground.png (transparente).
+flutter_launcher_icons:
+  image_path: "assets/branding/app_icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#FAEFE7"
+  min_sdk_android: 23
+  adaptive_icon_background: "#FAEFE7"
+  adaptive_icon_foreground: "assets/branding/app_icon_foreground.png"
+
+# ─── Splash (gere com: dart run flutter_native_splash:create) ──────────
+# Requer assets/branding/splash_logo.png (logo central, fundo transparente).
+flutter_native_splash:
+  color: "#F7E4D7"
+  image: "assets/branding/splash_logo.png"
+  android: true
+  ios: true
+  android_12:
+    color: "#F7E4D7"
+    image: "assets/branding/splash_logo.png"

@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>StitchMind — Crochet &amp; knitting with AI, from cast-on to finished project</title>
+  <meta name="description" content="Learn crochet and knitting step by step, identify stitches from a photo with AI, and get instant help from Stitch. Download free." />
+  <meta name="theme-color" content="#FBF3EC" />
+  <meta property="og:title" content="StitchMind — crochet &amp; knitting with AI" />
+  <meta property="og:description" content="Step-by-step lessons, stitch identification from a photo, and an AI assistant to answer your questions." />
+  <meta property="og:image" content="/img/screen1.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --cream:#FBF3EC; --peach:#FFE9D8; --peach2:#FFD9BE; --linen:#F6E7DA; --paper:#FFFFFF;
+      --ink:#2B211B; --soft:#6B5D53; --muted:#A89A8E;
+      --coral:#F2604E; --coralD:#DB4631; --coralSoft:#FBEDE8;
+      --ochre:#F5A623; --gold:#F5B731; --sage:#7C9A6A; --sageSoft:#EDF1E8;
+      --line:#EDE2D7; --hair:#F0E6DB;
+      --shadow:0 24px 60px rgba(74,53,38,.10);
+      --shadow-sm:0 8px 24px rgba(74,53,38,.07);
+      --r:26px;
+      --maxw:1120px;
+      --serif:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      --sans:"Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:var(--sans); color:var(--ink); background:var(--cream);
+      line-height:1.5; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+    }
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+    .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+    .serif{font-family:var(--serif)}
+    .coral{color:var(--coral)}
+    section{position:relative}
+
+    /* textura sutil de grão */
+    body::before{
+      content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.025;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── Header ───────────────────────────────────────── */
+    header{position:sticky;top:0;z-index:100;transition:background .25s, box-shadow .25s, padding .25s;}
+    header.scrolled{background:rgba(251,243,236,.82);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--hair);}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 0;}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:20px;letter-spacing:-.02em;}
+    .brand img{width:38px;height:38px;border-radius:11px;box-shadow:var(--shadow-sm);}
+    .nav-links{display:flex;align-items:center;gap:30px;}
+    .nav-links a{font-size:14.5px;font-weight:600;color:var(--soft);transition:color .15s;}
+    .nav-links a:hover{color:var(--ink);}
+    .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;border-radius:100px;padding:12px 22px;transition:transform .15s, box-shadow .15s, background .15s; cursor:pointer; border:none; font-family:var(--sans);}
+    .btn-primary{background:var(--ink);color:#fff;box-shadow:0 10px 24px rgba(43,33,27,.22);}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 30px rgba(43,33,27,.30);}
+    .btn-coral{background:linear-gradient(180deg,var(--coral),var(--coralD));color:#fff;box-shadow:0 12px 26px rgba(219,70,49,.32);}
+    .btn-coral:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(219,70,49,.42);}
+    .btn-ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-sm);}
+    .btn-ghost:hover{transform:translateY(-2px);}
+    .nav .btn{padding:11px 20px;}
+    @media(max-width:820px){.nav-links{display:none}}
+
+    /* ── Hero ─────────────────────────────────────────── */
+    .hero{padding:50px 0 30px;}
+    .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center;}
+    .eyebrow{display:inline-flex;align-items:center;gap:9px;background:var(--paper);border:1px solid var(--line);border-radius:100px;padding:8px 15px;font-size:13px;font-weight:600;color:var(--soft);box-shadow:var(--shadow-sm);}
+    .eyebrow .s{color:var(--gold);letter-spacing:1px;}
+    .eyebrow b{color:var(--ink);}
+    h1.title{font-family:var(--serif);font-weight:800;font-size:clamp(42px,6.4vw,76px);line-height:1.0;letter-spacing:-.02em;margin:22px 0 0;}
+    h1.title em{font-style:normal;color:var(--coral);position:relative;}
+    .lead{font-size:clamp(16px,2.2vw,19px);color:var(--soft);max-width:30ch;margin:20px 0 26px;line-height:1.6;}
+    .hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+    .hero-proof{display:flex;align-items:center;gap:12px;margin-top:24px;color:var(--soft);font-size:13.5px;}
+    .avatars{display:flex;}
+    .avatars span{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--cream);margin-left:-10px;background:var(--peach2);display:flex;align-items:center;justify-content:center;font-size:15px;}
+    .avatars span:first-child{margin-left:0;}
+
+    /* arte do hero */
+    .hero-art{position:relative;min-height:440px;display:flex;align-items:center;justify-content:center;}
+    .blob{position:absolute;border-radius:50%;filter:blur(48px);z-index:0;}
+    .b1{width:300px;height:300px;background:var(--coral);opacity:.22;top:-10px;right:10px;}
+    .b2{width:240px;height:240px;background:var(--ochre);opacity:.20;bottom:0;left:-10px;}
+    .phone{position:relative;z-index:2;width:min(300px,76%);border-radius:42px;box-shadow:0 40px 80px rgba(74,53,38,.22),0 12px 24px rgba(74,53,38,.12);transform:rotate(-3deg);}
+    .hero-fox{position:absolute;z-index:3;width:172px;right:-6px;bottom:-6px;filter:drop-shadow(0 14px 24px rgba(219,70,49,.20));transform:rotate(4deg);}
+    .squiggle{position:absolute;z-index:1;color:var(--coral);opacity:.8;}
+    .sq-hero{top:6px;left:0;width:120px;}
+    .float{animation:float 6s ease-in-out infinite;}
+    @keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-14px) rotate(-3deg)}}
+    @media(max-width:880px){
+      .hero-grid{grid-template-columns:1fr;text-align:center;gap:8px;}
+      .lead{margin-left:auto;margin-right:auto;}
+      .hero-cta,.hero-proof{justify-content:center;}
+      .hero-art{min-height:420px;margin-top:10px;}
+      h1.title em::after{display:none}
+    }
+
+    /* faixa de confiança */
+    .trust{background:var(--ink);color:#fff;border-radius:var(--r);padding:26px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;text-align:center;margin:34px 0;box-shadow:var(--shadow);}
+    .trust .n{font-family:var(--serif);font-weight:800;font-size:30px;color:#fff;}
+    .trust .l{font-size:12.5px;color:rgba(255,255,255,.62);margin-top:2px;}
+    @media(max-width:680px){.trust{grid-template-columns:repeat(2,1fr);gap:22px 14px}}
+
+    /* ── Seções ───────────────────────────────────────── */
+    .sec{padding:64px 0;}
+    .sec-head{text-align:center;max-width:640px;margin:0 auto 44px;}
+    .kicker{display:inline-block;font-size:12.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--coral);margin-bottom:12px;}
+    h2{font-family:var(--serif);font-weight:800;font-size:clamp(30px,4.4vw,46px);line-height:1.08;letter-spacing:-.02em;}
+    .sec-head p{color:var(--soft);font-size:17px;margin-top:14px;line-height:1.6;}
+
+    /* features alternadas */
+    .feature{display:grid;grid-template-columns:1fr 1fr;gap:46px;align-items:center;padding:34px 0;}
+    .feature:nth-child(even) .f-media{order:2;}
+    .f-media{position:relative;display:flex;align-items:center;justify-content:center;min-height:300px;}
+    .f-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:36px;box-shadow:var(--shadow);position:relative;overflow:hidden;width:100%;}
+    .f-card::after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;filter:blur(40px);opacity:.5;right:-60px;top:-60px;background:var(--peach2);}
+    .f-card img{position:relative;z-index:1;width:78%;margin:0 auto;}
+    .f-tag{display:inline-flex;align-items:center;gap:8px;background:var(--coralSoft);color:var(--coralD);font-weight:700;font-size:13px;border-radius:100px;padding:7px 14px;margin-bottom:18px;}
+    .feature h3{font-family:var(--serif);font-weight:700;font-size:clamp(26px,3.2vw,34px);line-height:1.12;letter-spacing:-.01em;}
+    .feature p{color:var(--soft);font-size:16.5px;line-height:1.65;margin:14px 0 18px;max-width:46ch;}
+    .checks{list-style:none;display:flex;flex-direction:column;gap:11px;}
+    .checks li{display:flex;align-items:flex-start;gap:11px;font-size:15.5px;font-weight:500;}
+    .checks .ck{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--sageSoft);color:var(--sage);display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:1px;}
+    @media(max-width:880px){
+      .feature{grid-template-columns:1fr;gap:22px;text-align:center;}
+      .feature:nth-child(even) .f-media{order:0;}
+      .feature p{margin-left:auto;margin-right:auto;}
+      .checks{align-items:center;}
+      .checks li{text-align:left;}
+    }
+
+    /* galeria de screenshots */
+    .gallery-sec{background:linear-gradient(180deg,var(--peach),var(--cream));padding:64px 0;}
+    .gallery{display:flex;gap:22px;overflow-x:auto;padding:8px 24px 26px;scroll-snap-type:x mandatory;margin:0 -24px;}
+    .gallery::-webkit-scrollbar{height:8px;}
+    .gallery::-webkit-scrollbar-thumb{background:var(--peach2);border-radius:10px;}
+    .gallery img{flex:0 0 auto;width:248px;border-radius:30px;scroll-snap-align:center;box-shadow:0 26px 50px rgba(74,53,38,.16);border:6px solid #fff;}
+
+    /* como funciona */
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+    .step{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:30px;box-shadow:var(--shadow-sm);position:relative;}
+    .step .num{font-family:var(--serif);font-weight:800;font-size:54px;color:var(--peach2);line-height:1;}
+    .step h4{font-size:19px;font-weight:700;margin:8px 0 8px;letter-spacing:-.01em;}
+    .step p{color:var(--soft);font-size:15px;line-height:1.6;}
+    @media(max-width:820px){.steps{grid-template-columns:1fr}}
+
+    /* depoimentos */
+    .testi-sec{background:var(--cream);}
+    .rating-hero{text-align:center;margin-bottom:42px;}
+    .rating-hero .big{font-family:var(--serif);font-weight:800;font-size:84px;line-height:1;color:var(--coral);}
+    .rating-hero .s{color:var(--gold);font-size:24px;letter-spacing:3px;}
+    .rating-hero .meta{color:var(--soft);font-size:15px;margin-top:6px;}
+    .testi{columns:3;column-gap:22px;}
+    .quote{break-inside:avoid;background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow-sm);margin-bottom:22px;}
+    .quote .qs{color:var(--gold);font-size:15px;letter-spacing:2px;margin-bottom:12px;}
+    .quote p{font-size:15.5px;line-height:1.6;color:var(--ink);}
+    .quote .who{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:13.5px;color:var(--soft);}
+    .quote .who span{width:34px;height:34px;border-radius:50%;background:var(--peach2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--coralD);}
+    @media(max-width:880px){.testi{columns:2}}
+    @media(max-width:560px){.testi{columns:1}}
+
+    /* banda premium */
+    .cta-band{background:linear-gradient(120deg,var(--coral),var(--coralD));border-radius:34px;padding:54px;color:#fff;display:grid;grid-template-columns:1.3fr .7fr;align-items:center;gap:24px;position:relative;overflow:hidden;box-shadow:0 30px 70px rgba(219,70,49,.30);}
+    .cta-band h2{color:#fff;}
+    .cta-band p{color:rgba(255,255,255,.9);font-size:17px;margin:14px 0 24px;max-width:42ch;line-height:1.6;}
+    .cta-band .glow{position:absolute;width:320px;height:320px;border-radius:50%;background:#fff;opacity:.12;filter:blur(20px);right:-40px;top:-80px;}
+    .cta-band-fox{justify-self:center;width:210px;filter:drop-shadow(0 16px 30px rgba(0,0,0,.18));}
+    .cta-band .btn-ghost{background:#fff;color:var(--coralD);}
+    @media(max-width:780px){.cta-band{grid-template-columns:1fr;text-align:center;padding:40px 28px;}.cta-band p{margin-left:auto;margin-right:auto}.cta-band-fox{width:160px;order:-1}}
+
+    /* FAQ */
+    .faq{max-width:760px;margin:0 auto;}
+    .qa{background:var(--paper);border:1px solid var(--line);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm);}
+    .qa summary{list-style:none;cursor:pointer;padding:20px 24px;font-weight:700;font-size:16.5px;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+    .qa summary::-webkit-details-marker{display:none}
+    .qa summary .pl{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--coralSoft);color:var(--coral);display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform .2s;}
+    .qa[open] summary .pl{transform:rotate(45deg);}
+    .qa .a{padding:0 24px 22px;color:var(--soft);font-size:15.5px;line-height:1.65;}
+
+    /* footer */
+    footer{background:var(--ink);color:#fff;margin-top:70px;padding:60px 0 36px;}
+    .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:30px;}
+    .foot-brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:20px;margin-bottom:14px;}
+    .foot-brand img{width:38px;height:38px;border-radius:11px;}
+    footer p.tag{color:rgba(255,255,255,.55);font-size:14px;max-width:30ch;line-height:1.6;}
+    .foot-col h5{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:14px;}
+    .foot-col a{display:block;color:rgba(255,255,255,.82);font-size:14.5px;font-weight:500;margin-bottom:10px;transition:color .15s;}
+    .foot-col a:hover{color:#fff;}
+    .foot-bottom{border-top:1px solid rgba(255,255,255,.12);margin-top:42px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:rgba(255,255,255,.5);font-size:13.5px;}
+    @media(max-width:780px){.foot-grid{grid-template-columns:1fr 1fr}.foot-brand{grid-column:1/-1}}
+
+    /* reveal on scroll */
+    .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);}
+    .reveal.in{opacity:1;transform:none;}
+    @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.float{animation:none}}
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="hdr">
+    <div class="wrap nav">
+      <a class="brand" href="/"><img src="/img/icon.png" alt="StitchMind"> StitchMind</a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="/blog">Blog</a>
+        <a href="#reviews">Reviews</a>
+      </nav>
+      <a class="btn btn-coral" href="https://apps.apple.com/br/app/stitchmind/id6771110673">Download free</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="reveal">
+        <span class="eyebrow"><span class="s">★★★★★</span> <b>4.7</b> · #1 crochet &amp; knitting app</span>
+        <h1 class="title">Crochet &amp; knitting,<br><em>stitch by stitch</em>.</h1>
+        <p class="lead">Guided lessons with a photo for every step, AI stitch identification from a photo, and <b>Stitch</b> to answer your questions on the spot.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="https://apps.apple.com/br/app/stitchmind/id6771110673">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.03-2.9 2.37-4.29 2.47-4.36-1.35-1.97-3.45-2.24-4.2-2.27-1.79-.18-3.49 1.05-4.4 1.05-.9 0-2.3-1.02-3.79-1-1.95.03-3.75 1.13-4.75 2.88-2.02 3.51-.52 8.71 1.45 11.56.96 1.39 2.11 2.96 3.61 2.9 1.45-.06 2-.94 3.75-.94 1.75 0 2.24.94 3.77.91 1.56-.03 2.55-1.42 3.5-2.82 1.1-1.62 1.56-3.18 1.58-3.26-.03-.02-3.03-1.16-3.06-4.61M14.2 4.5c.8-.97 1.34-2.32 1.19-3.66-1.15.05-2.54.77-3.37 1.74-.74.85-1.39 2.22-1.22 3.53 1.28.1 2.59-.65 3.4-1.61"/></svg>
+            Download on the App Store
+          </a>
+          <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.stitchmind.app">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 2.3C3.3 2.6 3.1 3 3.1 3.6v16.8c0 .6.2 1 .5 1.3l9.4-9.7zM14.4 13.2 5 22.4c.4.1.9 0 1.4-.3l11.1-6.4zM20.5 11.1l-2.6-1.5-3 3.2 3 3.2 2.6-1.5c.9-.5.9-1.4 0-1.9zM6.4 1.9C5.9 1.6 5.4 1.5 5 1.6l9.4 9.2 2.5-2.6z"/></svg>
+            Get it on Google Play
+          </a>
+          <a class="btn btn-ghost" href="#features">See features</a>
+        </div>
+        <div class="hero-proof">
+          <div class="avatars"><span>🧶</span><span>🧵</span><span>🪡</span><span>🧶</span></div>
+          <span>Thousands of makers are already creating with us</span>
+        </div>
+      </div>
+
+      <div class="hero-art">
+        <span class="blob b1"></span><span class="blob b2"></span>
+        <svg class="squiggle sq-hero" viewBox="0 0 120 60" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path d="M5 40c20-30 40 10 55-6s30-26 55 6"/></svg>
+        <img class="phone float" src="/img/screen1.png" alt="App StitchMind" />
+        <img class="hero-fox" src="/img/fox.png" alt="" />
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <div class="wrap">
+    <div class="trust reveal">
+      <div><div class="n">4.7★</div><div class="l">on the App Store &amp; Google Play</div></div>
+      <div><div class="n">200+</div><div class="l">guided lessons &amp; patterns</div></div>
+      <div><div class="n">AI</div><div class="l">identifies stitches from a photo</div></div>
+      <div><div class="n">24/7</div><div class="l">Stitch answers your questions</div></div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="sec" id="features">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="kicker">All in one place</span>
+        <h2>From cast-on to <span class="coral">finished project</span></h2>
+        <p>A platform built for people who make by hand — with the right tech to unlock every step.</p>
+      </div>
+
+      <div class="feature reveal">
+        <div class="f-media"><div class="f-card"><img src="/img/analyze.png" alt="Identify stitches from a photo"></div></div>
+        <div>
+          <span class="f-tag">📷 AI analysis</span>
+          <h3>Snap a photo and discover the stitch</h3>
+          <p>Not sure what stitch that is? Photograph the piece and AI identifies the stitches and shows you how to recreate it — instantly.</p>
+          <ul class="checks">
+            <li><span class="ck">✓</span> Recognizes crochet &amp; knitting stitches</li>
+            <li><span class="ck">✓</span> Suggestions on how to recreate the piece</li>
+            <li><span class="ck">✓</span> Works with a photo from your gallery or camera</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature reveal">
+        <div class="f-media"><div class="f-card"><img src="/img/chat.png" alt="Stitch assistant"></div></div>
+        <div>
+          <span class="f-tag">💬 Stitch assistant</span>
+          <h3>An AI helper, anytime</h3>
+          <p>Chat with Stitch about stitches, patterns, materials and sizing. Like having an experienced friend by your side — no judgment.</p>
+          <ul class="checks">
+            <li><span class="ck">✓</span> Answers questions in plain language</li>
+            <li><span class="ck">✓</span> Explains patterns and abbreviations</li>
+            <li><span class="ck">✓</span> Helps adjust size and tension</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature reveal">
+        <div class="f-media"><div class="f-card"><img src="/img/screen2.png" alt="Step-by-step lessons" style="width:62%;border-radius:24px;border:5px solid #fff;box-shadow:0 18px 40px rgba(74,53,38,.16)"></div></div>
+        <div>
+          <span class="f-tag">📚 Guided lessons</span>
+          <h3>Step by step, with a photo at every stage</h3>
+          <p>Every lesson shows exactly what to do with hook and yarn — one photo per step. Save your lessons and access them offline anytime.</p>
+          <ul class="checks">
+            <li><span class="ck">✓</span> 200+ lessons and patterns</li>
+            <li><span class="ck">✓</span> From absolute beginner to advanced</li>
+            <li><span class="ck">✓</span> Row counter and saved progress</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALERIA -->
+  <section class="gallery-sec">
+    <div class="wrap sec-head reveal" style="margin-bottom:28px">
+      <span class="kicker">Inside the app</span>
+      <h2>Beautiful to use, easy to learn</h2>
+    </div>
+    <div class="wrap" style="padding:0">
+      <div class="gallery">
+        <img src="/img/screen1.png" alt="Home screen"><img src="/img/screen2.png" alt="Lessons">
+        <img src="/img/screen3.png" alt="Save lessons"><img src="/img/screen4.png" alt="Tools">
+        <img src="/img/screen5.png" alt="Patterns"><img src="/img/screen6.png" alt="Profile">
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="sec" id="how">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="kicker">How it works</span>
+        <h2>Start creating in <span class="coral">3 steps</span></h2>
+      </div>
+      <div class="steps">
+        <div class="step reveal"><div class="num">1</div><h4>Download &amp; personalize</h4><p>Tell us your goals and skill level — the app builds a plan made just for you.</p></div>
+        <div class="step reveal"><div class="num">2</div><h4>Learn &amp; practice</h4><p>Follow step-by-step lessons, identify stitches from photos and ask Stitch.</p></div>
+        <div class="step reveal"><div class="num">3</div><h4>Finish projects</h4><p>Save your lessons, track your progress and watch your pieces come to life.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEPOIMENTOS -->
+  <section class="sec testi-sec" id="reviews">
+    <div class="wrap">
+      <div class="rating-hero reveal">
+        <div class="big">4.7</div>
+        <div class="s">★★★★★</div>
+        <div class="meta">real reviews on the App Store and Google Play</div>
+      </div>
+      <div class="testi">
+        <div class="quote reveal"><div class="qs">★★★★★</div><p>"I finally understand patterns. The photo-per-step changed everything for me."</p><div class="who"><span>M</span> Marina · beginner</div></div>
+        <div class="quote reveal"><div class="qs">★★★★★</div><p>"I photographed a stitch I saw online and the app told me exactly what it was. Magical."</p><div class="who"><span>C</span> Carla · intermediate</div></div>
+        <div class="quote reveal"><div class="qs">★★★★★</div><p>"Stitch answers my silliest questions without judgment. It's become my crochet buddy."</p><div class="who"><span>R</span> Rafa · beginner</div></div>
+        <div class="quote reveal"><div class="qs">★★★★★</div><p>"I use it so I never lose count of my rows. I saved a bunch of lessons and craft offline on the bus."</p><div class="who"><span>B</span> Bia · intermediate</div></div>
+        <div class="quote reveal"><div class="qs">★★★★★</div><p>"I started from absolute zero and made my first amigurumi in two weeks. Highly recommend."</p><div class="who"><span>L</span> Lu · beginner</div></div>
+        <div class="quote reveal"><div class="qs">★★★★★</div><p>"Beautiful design and super intuitive. Makes me want to open it every day."</p><div class="who"><span>J</span> Júlia · advanced</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BAND -->
+  <section class="sec" style="padding-top:20px">
+    <div class="wrap">
+      <div class="cta-band reveal">
+        <span class="glow"></span>
+        <div>
+          <h2>Your next piece starts today</h2>
+          <p>Download StitchMind for free and unlock lessons, photo analysis and Stitch whenever you need it.</p>
+          <a class="btn btn-ghost" href="https://apps.apple.com/br/app/stitchmind/id6771110673">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.04c-.03-2.9 2.37-4.29 2.47-4.36-1.35-1.97-3.45-2.24-4.2-2.27-1.79-.18-3.49 1.05-4.4 1.05-.9 0-2.3-1.02-3.79-1-1.95.03-3.75 1.13-4.75 2.88-2.02 3.51-.52 8.71 1.45 11.56.96 1.39 2.11 2.96 3.61 2.9 1.45-.06 2-.94 3.75-.94 1.75 0 2.24.94 3.77.91 1.56-.03 2.55-1.42 3.5-2.82 1.1-1.62 1.56-3.18 1.58-3.26-.03-.02-3.03-1.16-3.06-4.61M14.2 4.5c.8-.97 1.34-2.32 1.19-3.66-1.15.05-2.54.77-3.37 1.74-.74.85-1.39 2.22-1.22 3.53 1.28.1 2.59-.65 3.4-1.61"/></svg>
+            Download on the App Store
+          </a>
+          <a class="btn btn-ghost" href="https://play.google.com/store/apps/details?id=com.stitchmind.app">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 2.3C3.3 2.6 3.1 3 3.1 3.6v16.8c0 .6.2 1 .5 1.3l9.4-9.7zM14.4 13.2 5 22.4c.4.1.9 0 1.4-.3l11.1-6.4zM20.5 11.1l-2.6-1.5-3 3.2 3 3.2 2.6-1.5c.9-.5.9-1.4 0-1.9zM6.4 1.9C5.9 1.6 5.4 1.5 5 1.6l9.4 9.2 2.5-2.6z"/></svg>
+            Get it on Google Play
+          </a>
+        </div>
+        <img class="cta-band-fox" src="/img/fox.png" alt="">
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="kicker">Frequently asked questions</span>
+        <h2>Still have questions?</h2>
+      </div>
+      <div class="faq">
+        <details class="qa reveal"><summary>Is the app free? <span class="pl">+</span></summary><div class="a">Yes! You download and use StitchMind for free. There's an optional premium subscription that unlocks all lessons, unlimited photo analysis and unlimited chat with Stitch.</div></details>
+        <details class="qa reveal"><summary>Does it work if I've never crocheted? <span class="pl">+</span></summary><div class="a">Absolutely. There's a track for absolute beginners, with every step explained and illustrated. You pick your level at the start and the app adapts to you.</div></details>
+        <details class="qa reveal"><summary>Is it for both crochet and knitting? <span class="pl">+</span></summary><div class="a">Yes, both. You tell us what you do (or both) and get lessons and patterns for the right craft.</div></details>
+        <details class="qa reveal"><summary>How does photo identification work? <span class="pl">+</span></summary><div class="a">You take a photo of the piece (or pick one from your gallery) and AI analyzes the stitches, telling you what they are and how to recreate them.</div></details>
+        <details class="qa reveal"><summary>Is it available on Android? <span class="pl">+</span></summary><div class="a">StitchMind is on the App Store and coming soon to Google Play. Tap "Download free" to check availability on your device.</div></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-brand-wrap">
+          <div class="foot-brand"><img src="/img/icon.png" alt=""> StitchMind</div>
+          <p class="tag">Crochet &amp; knitting with AI — step-by-step lessons, photo stitch analysis and an assistant always nearby.</p>
+        </div>
+        <div class="foot-col"><h5>Product</h5><a href="#features">Features</a><a href="#how">How it works</a><a href="#reviews">Reviews</a><a href="https://apps.apple.com/br/app/stitchmind/id6771110673">App Store</a><a href="https://play.google.com/store/apps/details?id=com.stitchmind.app">Google Play</a></div>
+        <div class="foot-col"><h5>Content</h5><a href="/blog">Blog</a><a href="/blog">Crochet tips</a><a href="/blog">Patterns</a></div>
+        <div class="foot-col"><h5>Legal</h5><a href="/termos">Terms of Use</a><a href="/privacidade">Privacy</a></div>
+      </div>
+      <div class="foot-bottom">
+        <div>© 2026 StitchMind · stitchmindapp.com</div>
+        <div>Made with 🧶 and lots of love</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // header com sombra ao rolar
+    const hdr=document.getElementById('hdr');
+    const onScroll=()=>hdr.classList.toggle('scrolled',window.scrollY>10);
+    onScroll();addEventListener('scroll',onScroll,{passive:true});
+    // reveal ao entrar na tela
+    const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+    document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(Math.min(i%4,3)*60)+'ms';io.observe(el);});
+  </script>
+</body>
+</html>

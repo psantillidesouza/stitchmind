@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StitchMind · Painel</title>
+  <link rel="stylesheet" href="/admin/styles.css?v=12" />
+</head>
+<body>
+  <!-- ─── Tela de login (full screen) ─── -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px;color:#fff"><circle cx="12" cy="12" r="9"/><path d="M5.2 9c4.4 2.2 9.2 2.2 13.6 0M4 13c5.2 3 10.8 3 16 0M8.5 4c2 5.2 2 10.8 0 16M14 4c-1.2 5.2-1.2 10.8 0 16"/></svg></div>
+      <h1>StitchMind</h1>
+      <div class="login-sub">Painel administrativo</div>
+      <form id="login-form" autocomplete="on">
+        <label class="login-label">E-mail</label>
+        <input id="adm-email" type="email" placeholder="admin@stitchmindapp.com" autocomplete="username" required />
+        <label class="login-label">Senha</label>
+        <input id="adm-pass" type="password" placeholder="••••••••" autocomplete="current-password" required />
+        <button id="adm-signin" type="submit">Entrar</button>
+        <div id="login-error" class="login-error"></div>
+      </form>
+      <div class="login-foot">Acesso restrito a administradores</div>
+    </div>
+  </div>
+
+  <!-- ─── Painel (após login) ─── -->
+  <div id="panel" style="display:none">
+    <aside class="sidebar">
+      <div class="brand"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><circle cx="12" cy="12" r="9"/><path d="M5.2 9c4.4 2.2 9.2 2.2 13.6 0M4 13c5.2 3 10.8 3 16 0M8.5 4c2 5.2 2 10.8 0 16M14 4c-1.2 5.2-1.2 10.8 0 16"/></svg> StitchMind</div>
+      <nav id="nav">
+        <div class="nav-group">
+          <button class="nav-section" data-group="geral">Geral<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="nav-items">
+            <a data-view="overview" data-icon="overview" class="active">Visão geral</a>
+            <a data-view="live" data-icon="live">Ao vivo</a>
+          </div>
+        </div>
+        <div class="nav-group">
+          <button class="nav-section" data-group="conteudo">Conteúdo<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="nav-items">
+            <a data-view="lessons" data-icon="lessons">Aulas</a>
+            <a data-view="patterns" data-icon="lessons">Receitas</a>
+            <a data-view="tips" data-icon="tips">Dicas</a>
+            <a data-view="posts" data-icon="community">Comunidade</a>
+          </div>
+        </div>
+        <div class="nav-group">
+          <button class="nav-section" data-group="pessoas">Pessoas<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="nav-items">
+            <a data-view="users" data-icon="users">Usuários</a>
+            <a data-view="notifications" data-icon="notifications">Notificações</a>
+          </div>
+        </div>
+        <div class="nav-group">
+          <button class="nav-section" data-group="produto">Produto<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="nav-items">
+            <a data-view="product" data-icon="analytics">Analytics</a>
+          </div>
+        </div>
+        <div class="nav-group">
+          <button class="nav-section" data-group="sistema">Sistema<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="nav-items">
+            <a data-view="crashes" data-icon="crashes">Crashes</a>
+            <a data-view="ai" data-icon="ai">IA</a>
+          </div>
+        </div>
+      </nav>
+      <div class="user-box">
+        <div class="user-info">
+          <div class="user-avatar">A</div>
+          <div>
+            <div id="user-name" class="user-name">admin</div>
+            <div class="user-role">administrador</div>
+          </div>
+        </div>
+        <button id="adm-signout" class="btn ghost sm" style="width:100%;margin-top:10px">Sair</button>
+      </div>
+    </aside>
+    <main id="main">
+      <div class="loading">Carregando…</div>
+    </main>
+  </div>
+
+  <script src="/admin/app.js?v=14"></script>
+</body>
+</html>

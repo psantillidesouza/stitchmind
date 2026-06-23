@@ -1,0 +1,341 @@
+[
+  {
+    "id": "st-cr-001",
+    "name_pt": "Correntinha",
+    "name_en": "Chain",
+    "abbrev": "corr / ch",
+    "technique": "crochet",
+    "difficulty": "beginner",
+    "categories": ["base", "fundamento"],
+    "description": "Sequência de laçadas que forma a base da maioria dos projetos de crochê. Tudo começa por aqui.",
+    "steps": [
+      "Faça um nó corrediço na agulha.",
+      "Passe o fio sobre a agulha de trás para frente.",
+      "Puxe o fio através da laçada existente.",
+      "Repita até obter o número de correntinhas desejado."
+    ]
+  },
+  {
+    "id": "st-cr-002",
+    "name_pt": "Ponto baixíssimo",
+    "name_en": "Slip stitch",
+    "abbrev": "pbx / sl st",
+    "technique": "crochet",
+    "difficulty": "beginner",
+    "categories": ["base", "união"],
+    "description": "Ponto curto, usado para fechar carreiras circulares, unir partes e dar acabamento sem altura.",
+    "steps": [
+      "Insira a agulha no ponto desejado.",
+      "Laçada sobre a agulha.",
+      "Puxe o fio através do ponto e da laçada de uma só vez."
+    ]
+  },
+  {
+    "id": "st-cr-003",
+    "name_pt": "Ponto baixo",
+    "name_en": "Single crochet",
+    "abbrev": "pb / sc",
+    "technique": "crochet",
+    "difficulty": "beginner",
+    "categories": ["base", "firme"],
+    "description": "Ponto fundamental do crochê. Forma tecido firme e denso, ideal para amigurumi, bolsas e bases.",
+    "steps": [
+      "Insira a agulha no próximo ponto.",
+      "Laçada e puxe (duas laçadas na agulha).",
+      "Laçada novamente e puxe através das duas laçadas."
+    ]
+  },
+  {
+    "id": "st-cr-004",
+    "name_pt": "Meio ponto alto",
+    "name_en": "Half double crochet",
+    "abbrev": "mpa / hdc",
+    "technique": "crochet",
+    "difficulty": "beginner",
+    "categories": ["base"],
+    "description": "Altura intermediária entre o ponto baixo e o ponto alto. Equilíbrio entre firmeza e fluidez.",
+    "steps": [
+      "Laçada antes de inserir a agulha.",
+      "Insira no próximo ponto, laçada e puxe (três laçadas na agulha).",
+      "Laçada e puxe através das três laçadas de uma vez."
+    ]
+  },
+  {
+    "id": "st-cr-005",
+    "name_pt": "Ponto alto",
+    "name_en": "Double crochet",
+    "abbrev": "pa / dc",
+    "technique": "crochet",
+    "difficulty": "beginner",
+    "categories": ["base", "aberto"],
+    "description": "Tecido com bom caimento, perfeito para shawls, mantas e roupas leves.",
+    "steps": [
+      "Laçada na agulha.",
+      "Insira no próximo ponto, laçada e puxe (três laçadas).",
+      "Laçada e puxe através de duas laçadas.",
+      "Laçada e puxe através das duas restantes."
+    ]
+  },
+  {
+    "id": "st-cr-006",
+    "name_pt": "Ponto alto duplo",
+    "name_en": "Treble crochet",
+    "abbrev": "pad / tr",
+    "technique": "crochet",
+    "difficulty": "intermediate",
+    "categories": ["alto", "aberto"],
+    "description": "Ponto bem alto, ótimo para xales, gola e peças de verão.",
+    "steps": [
+      "Duas laçadas na agulha.",
+      "Insira no ponto, laçada e puxe (quatro laçadas).",
+      "Laçada e puxe através de duas, três vezes seguidas."
+    ]
+  },
+  {
+    "id": "st-cr-007",
+    "name_pt": "Ponto pipoca",
+    "name_en": "Popcorn stitch",
+    "abbrev": "pop",
+    "technique": "crochet",
+    "difficulty": "intermediate",
+    "categories": ["textura", "decorativo"],
+    "description": "Forma pequenos bojos texturizados. Excelente para detalhes em mantas, almofadas e peças infantis.",
+    "steps": [
+      "Faça 5 pontos altos no mesmo ponto base.",
+      "Retire a agulha do último ponto e insira no primeiro alto.",
+      "Pegue a laçada solta e puxe através, fechando o grupo."
+    ]
+  },
+  {
+    "id": "st-cr-008",
+    "name_pt": "Ponto puff",
+    "name_en": "Puff stitch",
+    "abbrev": "puff",
+    "technique": "crochet",
+    "difficulty": "intermediate",
+    "categories": ["textura"],
+    "description": "Volumoso e macio, lembra pequenas almofadas no tecido. Lindo em mantas para bebê.",
+    "steps": [
+      "Laçada, insira no ponto e puxe um fio longo (3 laçadas).",
+      "Repita 3 a 5 vezes no mesmo ponto.",
+      "Laçada e puxe através de todas as laçadas da agulha.",
+      "Feche com 1 correntinha."
+    ]
+  },
+  {
+    "id": "st-cr-009",
+    "name_pt": "Ponto leque",
+    "name_en": "Shell stitch",
+    "abbrev": "leque",
+    "technique": "crochet",
+    "difficulty": "intermediate",
+    "categories": ["decorativo", "aberto"],
+    "description": "Vários pontos altos no mesmo ponto base formam um leque elegante. Comum em shawls.",
+    "steps": [
+      "No ponto indicado, faça 5 pontos altos consecutivos.",
+      "Pule a quantidade de pontos indicada.",
+      "Continue na próxima base."
+    ]
+  },
+  {
+    "id": "st-cr-010",
+    "name_pt": "Cluster",
+    "name_en": "Cluster",
+    "abbrev": "cl",
+    "technique": "crochet",
+    "difficulty": "advanced",
+    "categories": ["textura"],
+    "description": "Grupo de pontos altos não finalizados, unidos em um único topo. Base para muitos pontos texturizados.",
+    "steps": [
+      "Faça pontos altos sem finalizar, deixando a última laçada na agulha.",
+      "Quando tiver o número desejado, laçada final.",
+      "Puxe através de todas as laçadas da agulha."
+    ]
+  },
+  {
+    "id": "st-cr-011",
+    "name_pt": "Granny square",
+    "name_en": "Granny square",
+    "abbrev": "granny",
+    "technique": "crochet",
+    "difficulty": "beginner",
+    "categories": ["motivo", "clássico"],
+    "description": "Quadradinho clássico do crochê. Combine vários para formar mantas, almofadas e roupas patchwork.",
+    "steps": [
+      "Anel mágico ou 4 correntinhas fechadas em círculo.",
+      "Carreira 1: 3 grupos de 3 pontos altos com 3 correntinhas entre eles.",
+      "Carreiras seguintes: nos cantos faça 2 grupos de 3 PA separados por 3 correntinhas."
+    ]
+  },
+  {
+    "id": "st-cr-012",
+    "name_pt": "Anel mágico",
+    "name_en": "Magic ring",
+    "abbrev": "anel",
+    "technique": "crochet",
+    "difficulty": "beginner",
+    "categories": ["fundamento", "amigurumi"],
+    "description": "Início ajustável para projetos circulares. Permite fechar o centro sem buraco.",
+    "steps": [
+      "Faça uma laçada solta com o fio.",
+      "Insira a agulha e puxe o fio principal através.",
+      "Trabalhe os pontos por dentro do anel.",
+      "Puxe a ponta solta para fechar o centro."
+    ]
+  },
+  {
+    "id": "st-tr-001",
+    "name_pt": "Montagem simples",
+    "name_en": "Long-tail cast on",
+    "abbrev": "montagem",
+    "technique": "knit",
+    "difficulty": "beginner",
+    "categories": ["base", "fundamento"],
+    "description": "Forma elástica de iniciar pontos na agulha de tricô. Versátil para a maioria dos projetos.",
+    "steps": [
+      "Calcule a ponta longa (3x a largura da peça).",
+      "Faça um nó corrediço na agulha.",
+      "Forme a posição de funda com os dedos.",
+      "Puxe a laçada para cima e ajuste cada ponto."
+    ]
+  },
+  {
+    "id": "st-tr-002",
+    "name_pt": "Ponto meia",
+    "name_en": "Knit stitch",
+    "abbrev": "k / m",
+    "technique": "knit",
+    "difficulty": "beginner",
+    "categories": ["base"],
+    "description": "Base do tricô. Forma o famoso V do direito da malha. Combinado, gera o ponto meia em rebatido (stockinette).",
+    "steps": [
+      "Insira a agulha direita pela frente do ponto, da esquerda para a direita.",
+      "Passe o fio por trás da agulha direita.",
+      "Puxe a laçada para frente.",
+      "Deslize o ponto antigo para fora da agulha esquerda."
+    ]
+  },
+  {
+    "id": "st-tr-003",
+    "name_pt": "Ponto tricô",
+    "name_en": "Purl stitch",
+    "abbrev": "p / t",
+    "technique": "knit",
+    "difficulty": "beginner",
+    "categories": ["base"],
+    "description": "Inverso do ponto meia. Combinado com ele forma toda a base do tricô plano e circular.",
+    "steps": [
+      "Mantenha o fio à frente do trabalho.",
+      "Insira a agulha direita pela frente, da direita para a esquerda.",
+      "Enrole o fio sentido anti-horário.",
+      "Puxe a laçada para trás e solte o ponto antigo."
+    ]
+  },
+  {
+    "id": "st-tr-004",
+    "name_pt": "Ponto jersey",
+    "name_en": "Stockinette",
+    "abbrev": "jersey",
+    "technique": "knit",
+    "difficulty": "beginner",
+    "categories": ["padrão", "fundamento"],
+    "description": "Alternância de uma carreira em meia e uma em tricô. Resultado liso no direito e enrolado nas bordas.",
+    "steps": [
+      "Carreira 1 (direito): todos os pontos em meia.",
+      "Carreira 2 (avesso): todos os pontos em tricô.",
+      "Repita as duas carreiras."
+    ]
+  },
+  {
+    "id": "st-tr-005",
+    "name_pt": "Ponto elástico 1x1",
+    "name_en": "1x1 ribbing",
+    "abbrev": "rib 1x1",
+    "technique": "knit",
+    "difficulty": "beginner",
+    "categories": ["padrão", "elástico"],
+    "description": "Elasticidade no acabamento de barras, punhos e gola. Alternância 1 meia, 1 tricô.",
+    "steps": [
+      "Monte número par de pontos.",
+      "Carreira: *1 meia, 1 tricô*, repita até o fim.",
+      "Continue todas as carreiras seguindo os pontos."
+    ]
+  },
+  {
+    "id": "st-tr-006",
+    "name_pt": "Ponto arroz",
+    "name_en": "Seed stitch",
+    "abbrev": "seed",
+    "technique": "knit",
+    "difficulty": "intermediate",
+    "categories": ["textura"],
+    "description": "Alternância 1 meia 1 tricô, invertida a cada carreira. Cria textura granulada que lembra grãos de arroz.",
+    "steps": [
+      "Carreira 1: *1 meia, 1 tricô*, repita.",
+      "Carreira 2: troque — sobre meia faça tricô, sobre tricô faça meia.",
+      "Repita as duas carreiras."
+    ]
+  },
+  {
+    "id": "st-tr-007",
+    "name_pt": "Tranças",
+    "name_en": "Cable stitch",
+    "abbrev": "tr / cb",
+    "technique": "knit",
+    "difficulty": "advanced",
+    "categories": ["textura", "decorativo"],
+    "description": "Pontos cruzados que formam tranças clássicas de tricô. Requer agulha auxiliar.",
+    "steps": [
+      "Passe 2 a 4 pontos para a agulha auxiliar.",
+      "Posicione na frente ou atrás conforme o sentido da trança.",
+      "Tricote os próximos pontos da agulha principal.",
+      "Volte os pontos da agulha auxiliar e tricote."
+    ]
+  },
+  {
+    "id": "st-tr-008",
+    "name_pt": "Aumento simples",
+    "name_en": "Make one (M1)",
+    "abbrev": "aum / M1",
+    "technique": "knit",
+    "difficulty": "intermediate",
+    "categories": ["aumento"],
+    "description": "Adiciona um ponto novo entre dois existentes sem deixar buraco aparente.",
+    "steps": [
+      "Levante a barra horizontal entre os dois últimos pontos.",
+      "Coloque-a na agulha esquerda por trás.",
+      "Tricote em meia pela perna de trás."
+    ]
+  },
+  {
+    "id": "st-tr-009",
+    "name_pt": "Diminuição (k2tog)",
+    "name_en": "Knit two together",
+    "abbrev": "k2tog",
+    "technique": "knit",
+    "difficulty": "beginner",
+    "categories": ["diminuição"],
+    "description": "Reduz um ponto. Inclinação para a direita.",
+    "steps": [
+      "Insira a agulha direita pelos dois próximos pontos da esquerda.",
+      "Trabalhe como uma única meia.",
+      "Solte os dois pontos antigos juntos."
+    ]
+  },
+  {
+    "id": "st-tr-010",
+    "name_pt": "Casa de botão",
+    "name_en": "Buttonhole",
+    "abbrev": "casa",
+    "technique": "knit",
+    "difficulty": "intermediate",
+    "categories": ["acabamento"],
+    "description": "Abertura no tecido para passar botões. Existem várias técnicas — a mais comum é a casa fechada em uma carreira.",
+    "steps": [
+      "Na posição, faça os pontos indicados.",
+      "Tire pontos com aumento por laçada.",
+      "Vire e feche o número necessário com cordão.",
+      "Continue a carreira normalmente."
+    ]
+  }
+]

@@ -1,0 +1,97 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: stitchmind-bun-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: stitchmind
+      POSTGRES_PASSWORD: stitchmind_dev_pw
+      POSTGRES_DB: stitchmind
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stitchmind"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  cache:
+    image: redis:7-alpine
+    container_name: stitchmind-bun-cache
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  storage:
+    image: minio/minio:latest
+    container_name: stitchmind-bun-storage
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9100:9000"
+      - "9101:9001"
+    volumes:
+      - storage_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  storage-init:
+    image: minio/mc:latest
+    container_name: stitchmind-bun-storage-init
+    depends_on:
+      storage:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://storage:9000 minioadmin minioadmin;
+      mc mb -p local/stitchmind-uploads;
+      mc mb -p local/stitchmind-public;
+      mc anonymous set download local/stitchmind-public;
+      echo 'buckets prontos';
+      exit 0;
+      "
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stitchmind-bun-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    env_file:
+      - .env
+    # Sobrescreve só os HOSTS para os nomes de serviço internos do docker.
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://stitchmind:stitchmind_dev_pw@db:5432/stitchmind
+      REDIS_URL: redis://cache:6379
+      S3_ENDPOINT: http://storage:9000
+      RUN_MIGRATIONS: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./secrets:/app/secrets:ro
+
+volumes:
+  db_data:
+  storage_data:

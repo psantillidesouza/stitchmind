@@ -1,0 +1,76 @@
+{
+  "identifier" : "5D3A1F20-STCH-MIND-PAY-000000000001",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "pt_BR",
+    "_storefront" : "BRA",
+    "_storeKitErrors" : [
+      { "current" : null, "enabled" : false, "name" : "Load Products" },
+      { "current" : null, "enabled" : false, "name" : "Purchase" },
+      { "current" : null, "enabled" : false, "name" : "Verification" },
+      { "current" : null, "enabled" : false, "name" : "App Store Sync" },
+      { "current" : null, "enabled" : false, "name" : "Subscription Status" },
+      { "current" : null, "enabled" : false, "name" : "App Transaction" },
+      { "current" : null, "enabled" : false, "name" : "Manage Subscriptions Sheet" },
+      { "current" : null, "enabled" : false, "name" : "Refund Request" },
+      { "current" : null, "enabled" : false, "name" : "Offer Code Redeem Sheet" }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "20000000-STCH-PREMIUM-GROUP-0001",
+      "localizations" : [],
+      "name" : "StitchMind Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "9.90",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "10000000-STCH-SEMANAL-0001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Acesso Premium ao StitchMind, cobrado semanalmente.",
+              "displayName" : "Premium Semanal",
+              "locale" : "pt_BR"
+            }
+          ],
+          "productID" : "com.stitchmind.semanal",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Premium Semanal",
+          "subscriptionGroupID" : "20000000-STCH-PREMIUM-GROUP-0001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "199.90",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "10000000-STCH-ANUAL-0002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Acesso Premium ao StitchMind, cobrado anualmente.",
+              "displayName" : "Premium Anual",
+              "locale" : "pt_BR"
+            }
+          ],
+          "productID" : "com.stitchmind.anual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium Anual",
+          "subscriptionGroupID" : "20000000-STCH-PREMIUM-GROUP-0001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
