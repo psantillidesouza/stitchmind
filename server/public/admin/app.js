@@ -61,6 +61,24 @@ function icon(name, extra) { const s = ICONS[name] || ""; return extra ? s.repla
 
 // ─── Auth: tela de login dedicada ───────────────────────────────────
 let currentUser = null;
+let CURRENT_ROLE = "admin"; // papel no painel: admin | editor
+
+// Editor só enxerga conteúdo; o resto é só para admin.
+const EDITOR_VIEWS = new Set(["lessons", "patterns", "stitches", "tips", "posts"]);
+// Métricas redundantes com o Firebase Analytics saíram do painel; todo mundo
+// entra direto no conteúdo (Aulas).
+function defaultView() { return "lessons"; }
+function applyRole() {
+  $$("#nav a[data-view]").forEach((a) => {
+    const allowed = CURRENT_ROLE !== "editor" || EDITOR_VIEWS.has(a.dataset.view);
+    a.style.display = allowed ? "" : "none";
+  });
+  // esconde seções do nav que ficaram sem itens visíveis
+  $$(".nav-group").forEach((g) => {
+    const vis = [...g.querySelectorAll("a[data-view]")].some((a) => a.style.display !== "none");
+    g.style.display = vis ? "" : "none";
+  });
+}
 
 function showLogin() {
   $("#login-screen").style.display = "flex";
@@ -68,6 +86,8 @@ function showLogin() {
 }
 function showPanel(user) {
   currentUser = user;
+  CURRENT_ROLE = (user && user.panel_role) || "admin";
+  applyRole();
   $("#login-screen").style.display = "none";
   $("#panel").style.display = "flex";
   const name = user?.name || user?.email || "admin";
@@ -106,7 +126,7 @@ $("#login-form").addEventListener("submit", async (ev) => {
     localStorage.setItem("sm_admin_jwt", TOKEN);
     $("#adm-pass").value = "";
     showPanel(data.user);
-    render("overview");
+    render(defaultView());
   } catch (e) {
     err.textContent = e.message;
   } finally {
@@ -123,7 +143,7 @@ $("#adm-signout").onclick = () => {
 async function initAuth() {
   if (TOKEN && (await checkAuth())) {
     showPanel(currentUser);
-    render("overview");
+    render(defaultView());
   } else {
     showLogin();
   }
@@ -745,6 +765,85 @@ async function uploadAsset(file) {
   return asset;
 }
 
+// ─── Sub-passos (mini-passos: Título + Descrição + Tempo no vídeo) ───
+// mm:ss <-> segundos (pro vídeo com capítulos sincronizados).
+function parseTime(s) {
+  s = (s || "").trim();
+  if (!s) return null;
+  if (s.includes(":")) {
+    const [m, sec] = s.split(":").map((x) => Number(x));
+    if (Number.isFinite(m)) return Math.round(m * 60 + (Number(sec) || 0));
+    return null;
+  }
+  const n = Number(s);
+  return Number.isFinite(n) ? Math.round(n) : null;
+}
+function fmtTime(sec) {
+  if (sec == null || sec === "") return "";
+  const n = Number(sec);
+  if (!Number.isFinite(n)) return "";
+  return `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
+}
+
+function addSubstepRow(wrap, data = {}) {
+  const n = wrap.children.length + 1;
+  const row = document.createElement("div");
+  row.className = "substep-row";
+  row.style.cssText =
+    "border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px";
+  if (data.video_asset_id) row.dataset.videoAssetId = data.video_asset_id;
+  row.innerHTML =
+    `<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">` +
+    `<strong class="ss-n" style="font-size:12px;color:var(--muted)">Mini-passo ${n}</strong>` +
+    `<button class="btn danger sm" type="button" title="remover">remover</button></div>` +
+    `<input class="field ss-st" placeholder="Título (ex.: 2 correntes)" value="${esc(data.title)}" />` +
+    `<textarea class="field ss-sd" placeholder="Descrição (ex.: não contam como ponto)" style="margin-top:6px">${esc(data.description)}</textarea>` +
+    `<label class="lbl" style="margin-top:6px">Vídeo do mini-passo (cole uma URL ou envie um arquivo)</label>` +
+    `<input class="field ss-vurl" placeholder="https://… (opcional)" value="${esc(data.video_url)}" />` +
+    `<input type="file" class="ss-vfile" accept="video/*" style="font-size:11px;margin-top:6px" />` +
+    `<span class="ss-vst sub" style="font-size:10px;margin-left:8px">${data.video_asset_id ? "🎬 vídeo anexado ✓" : ""}</span>`;
+  row.querySelector("button").onclick = () => {
+    const w = row.parentElement;
+    row.remove();
+    renumberSubsteps(w);
+  };
+  row.querySelector(".ss-vfile").onchange = async (ev) => {
+    const f = ev.target.files[0];
+    if (!f) return;
+    const st = row.querySelector(".ss-vst");
+    st.textContent = "enviando vídeo… (pode demorar)";
+    try {
+      const asset = await uploadAsset(f);
+      row.dataset.videoAssetId = asset.id;
+      row.querySelector(".ss-vurl").value = "";
+      st.textContent = "🎬 vídeo do mini-passo enviado ✓";
+    } catch (e) {
+      st.textContent = "erro: " + e.message;
+    }
+  };
+  wrap.appendChild(row);
+}
+function renumberSubsteps(wrap) {
+  [...wrap.querySelectorAll(".ss-n")].forEach((el, i) => (el.textContent = `Mini-passo ${i + 1}`));
+}
+function wireSubsteps(card, initial) {
+  const wrap = card.querySelector(".substeps-wrap");
+  if (!wrap) return;
+  (initial || []).forEach((s) => addSubstepRow(wrap, s));
+  const addBtn = card.querySelector('[data-act="add-substep"]');
+  if (addBtn) addBtn.onclick = () => addSubstepRow(wrap);
+}
+function collectSubsteps(card) {
+  return [...card.querySelectorAll(".substep-row")]
+    .map((r) => ({
+      title: r.querySelector(".ss-st").value.trim(),
+      description: r.querySelector(".ss-sd").value.trim(),
+      video_url: r.querySelector(".ss-vurl").value.trim() || undefined,
+      video_asset_id: r.dataset.videoAssetId || undefined,
+    }))
+    .filter((s) => s.title || s.description || s.video_url || s.video_asset_id);
+}
+
 // ─── Aula completa (modelo rico) ────────────────────────────────────
 // Formulário do modelo da análise: metadados estruturados + passos detalhados.
 // Envia tudo de uma vez para POST /admin/lessons/full.
@@ -765,18 +864,15 @@ window.newFullLesson = (courses) => {
       <div style="flex:1"><label class="lbl">Categoria</label><select class="field" id="f-category">${categoryOptions()}</select></div>
       <div style="flex:1"><label class="lbl">Duração (min)</label><input class="field" id="f-dur" type="number" placeholder="opcional" /></div>
     </div>
-    <label class="lbl">Rótulo de dificuldade (exibição)</label><input class="field" id="f-diflabel" placeholder="Iniciante avançado → Intermediário" />
-    <label class="lbl">Tamanho final</label><input class="field" id="f-size" placeholder="aproximadamente 100 × 130 cm (manta)" />
     <label class="lbl">Capa (cole uma URL ou envie um arquivo)</label><input class="field" id="f-cover" placeholder="https://…" />
     <input type="file" id="f-cover-file" accept="image/*" style="font-size:11px;margin-top:6px" /><span id="f-cover-st" class="sub" style="font-size:10px;margin-left:8px"></span>
-    <label class="lbl">Descrição curta</label><textarea class="field" id="f-desc" placeholder="resumo de uma frase"></textarea>
-    <label class="lbl">Visão geral / Análise</label><textarea class="field" id="f-overview"></textarea>
+    <label class="lbl">Vídeo da aula (capítulos = passos com tempo)</label><input class="field" id="f-lvideo" placeholder="cole uma URL ou envie um arquivo" />
+    <input type="file" id="f-lvideo-file" accept="video/*" style="font-size:11px;margin-top:6px" /><span id="f-lvideo-st" class="sub" style="font-size:10px;margin-left:8px"></span>
+    <label class="lbl">Fio</label><input class="field" id="f-yarn" placeholder="ex.: Fio worsted #4 (acrílico)" />
+    <label class="lbl">Cor principal</label><input class="field" id="f-color" placeholder="ex.: Rosa pastel" />
+    <label class="lbl">Agulha de crochê</label><input class="field" id="f-hook" placeholder="ex.: 5,0 mm (H/8)" />
     <label class="lbl">Materiais (um por linha)</label><textarea class="field" id="f-materials" placeholder="Fio worsted #4&#10;Agulha 5,0 mm&#10;Tesoura"></textarea>
-    <label class="lbl">Sequência de cores</label><textarea class="field" id="f-colors"></textarea>
-    <label class="lbl">Método de construção</label><textarea class="field" id="f-construction"></textarea>
     <label class="lbl">Pontos usados (um por linha: nome | confiança)</label><textarea class="field" id="f-stitches" placeholder="Ponto baixo | Alta&#10;Ponto alto | Alta"></textarea>
-    <label class="lbl">Análise do padrão</label><textarea class="field" id="f-pattern"></textarea>
-    <label class="lbl">Nota de confiança</label><textarea class="field" id="f-confidence"></textarea>
 
     <div class="row" style="margin-top:18px"><h2 style="margin:0;font-size:15px">Passos</h2><div class="spacer"></div>
       <button class="btn ghost sm" type="button" id="f-add-step">+ passo</button></div>
@@ -787,6 +883,7 @@ window.newFullLesson = (courses) => {
     <div id="f-status" class="sub" style="margin-top:10px"></div>
     <div class="row" style="margin-top:16px">
       <button class="btn" id="f-save">Criar aula</button>
+      <button class="btn ghost" type="button" id="f-preview">👁 Pré-visualizar</button>
       <button class="btn ghost" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
     </div>`);
 
@@ -800,14 +897,16 @@ window.newFullLesson = (courses) => {
       <div class="row" style="justify-content:space-between"><strong class="step-n">Passo ${idx}</strong>
         <button class="btn danger sm" type="button" onclick="this.closest('.step-card').remove();window._renumSteps&&window._renumSteps()">remover</button></div>
       <label class="lbl">Título</label><input class="field s-title" value="${esc(data.title)}" />
-      <label class="lbl">Objetivo</label><textarea class="field s-goal">${esc(data.goal)}</textarea>
-      <label class="lbl">Descrição visual</label><textarea class="field s-visual">${esc(data.visual_description)}</textarea>
+      <label class="lbl">Tempo no vídeo da aula (mm:ss, opcional — vira capítulo)</label><input class="field s-time" value="${esc(fmtTime(data.time))}" placeholder="ex.: 2:40" />
+      <label class="lbl">Sub-passos (mini-passos: título + descrição + vídeo próprio)</label>
+      <div class="substeps-wrap"></div>
+      <button class="btn ghost sm" type="button" data-act="add-substep" style="margin-top:6px">+ mini-passo</button>
+      <label class="lbl" style="margin-top:12px">Total (ex.: 12 pontos)</label><input class="field s-total" value="${esc(data.total)}" />
       <label class="lbl">Pontos usados</label><textarea class="field s-stitches">${esc(data.stitches_used)}</textarea>
-      <label class="lbl">Padrão usado</label><textarea class="field s-pattern">${esc(data.pattern_used)}</textarea>
-      <label class="lbl">Resultado esperado</label><textarea class="field s-expected">${esc(data.expected_result)}</textarea>
       <label class="lbl">Imagem do passo (cole uma URL ou envie um arquivo)</label><input class="field s-image" value="${esc(data.image_url)}" />
       <input type="file" class="s-file" accept="image/*" style="font-size:11px;margin-top:6px" /><span class="s-upst sub" style="font-size:10px;margin-left:8px"></span>`;
     stepsWrap.appendChild(card);
+    wireSubsteps(card, data.substeps);
     // upload da imagem do passo (arquivo do PC → asset)
     $(".s-file", card).onchange = async (ev) => {
       const f = ev.target.files[0]; if (!f) return;
@@ -837,8 +936,21 @@ window.newFullLesson = (courses) => {
     } catch (e) { st.textContent = "erro: " + e.message; }
   };
 
+  let lessonVideoAssetId = null;
+  $("#f-lvideo-file", m).onchange = async (ev) => {
+    const f = ev.target.files[0]; if (!f) return;
+    const st = $("#f-lvideo-st", m); st.textContent = "enviando vídeo… (pode demorar)";
+    try {
+      const asset = await uploadAsset(f);
+      lessonVideoAssetId = asset.id;
+      $("#f-lvideo", m).value = "";
+      st.textContent = "vídeo da aula enviado ✓";
+    } catch (e) { st.textContent = "erro: " + e.message; }
+  };
+
   const lines = (id) => $(`#${id}`, m).value.split("\n").map((x) => x.trim()).filter(Boolean);
 
+  $("#f-preview", m).onclick = () => openLessonPreview(collectPreviewData(m, "f"));
   $("#f-save", m).onclick = async () => {
     const title = $("#f-title", m).value.trim();
     if (!title) { $("#f-status", m).textContent = "Informe o título."; return; }
@@ -848,11 +960,10 @@ window.newFullLesson = (courses) => {
     });
     const steps = $$(".step-card", m).map((c) => ({
       title: $(".s-title", c).value.trim() || undefined,
-      goal: $(".s-goal", c).value.trim() || undefined,
-      visual_description: $(".s-visual", c).value.trim() || undefined,
+      time: parseTime($(".s-time", c).value),
+      substeps: collectSubsteps(c),
+      total: $(".s-total", c).value.trim() || undefined,
       stitches_used: $(".s-stitches", c).value.trim() || undefined,
-      pattern_used: $(".s-pattern", c).value.trim() || undefined,
-      expected_result: $(".s-expected", c).value.trim() || undefined,
       image_url: $(".s-image", c).value.trim() || undefined,
       image_asset_id: c.dataset.assetId || undefined,
     }));
@@ -865,20 +976,17 @@ window.newFullLesson = (courses) => {
       duration_min: Number($("#f-dur", m).value) || null,
       cover_url: $("#f-cover", m).value.trim() || undefined,
       cover_asset_id: coverAssetId || undefined,
-      description: $("#f-desc", m).value.trim() || undefined,
       status: $("#f-pub", m).checked ? "published" : "draft",
       is_premium: $("#f-premium", m).checked,
       meta: {
         product_name: $("#f-title", m).value.trim() || undefined,
-        overview: $("#f-overview", m).value.trim() || undefined,
-        difficulty_label: $("#f-diflabel", m).value.trim() || undefined,
-        finished_size: $("#f-size", m).value.trim() || undefined,
         materials: lines("f-materials"),
-        color_sequence: $("#f-colors", m).value.trim() || undefined,
-        construction_method: $("#f-construction", m).value.trim() || undefined,
+        yarn: $("#f-yarn", m).value.trim() || undefined,
+        main_color: $("#f-color", m).value.trim() || undefined,
+        crochet_hook: $("#f-hook", m).value.trim() || undefined,
+        video_url: $("#f-lvideo", m).value.trim() || undefined,
+        video_asset_id: lessonVideoAssetId || undefined,
         stitches,
-        pattern_analysis: $("#f-pattern", m).value.trim() || undefined,
-        confidence_note: $("#f-confidence", m).value.trim() || undefined,
       },
       steps,
     };
@@ -915,18 +1023,15 @@ window.editFull = async (lessonId) => {
       <div style="flex:1"><label class="lbl">Duração (min)</label><input class="field" id="e-dur" type="number" value="${esc(lesson.duration_min ?? "")}" /></div>
       <div style="flex:1"><label class="lbl">Categoria</label><select class="field" id="e-category">${categoryOptions(lesson.category_id)}</select></div>
     </div>
-    <label class="lbl">Rótulo de dificuldade</label><input class="field" id="e-diflabel" value="${esc(meta.difficulty_label)}" />
-    <label class="lbl">Tamanho final</label><input class="field" id="e-size" value="${esc(meta.finished_size)}" />
     <label class="lbl">Capa (cole uma URL ou envie um arquivo)</label><input class="field" id="e-cover" value="${esc(lesson.cover_url)}" />
     <input type="file" id="e-cover-file" accept="image/*" style="font-size:11px;margin-top:6px" /><span id="e-cover-st" class="sub" style="font-size:10px;margin-left:8px"></span>
-    <label class="lbl">Descrição curta</label><textarea class="field" id="e-desc">${esc(lesson.description)}</textarea>
-    <label class="lbl">Visão geral / Análise</label><textarea class="field" id="e-overview">${esc(meta.overview)}</textarea>
+    <label class="lbl">Vídeo da aula (capítulos = passos com tempo)</label><input class="field" id="e-lvideo" value="${esc(meta.video_url)}" placeholder="cole uma URL ou envie um arquivo" />
+    <input type="file" id="e-lvideo-file" accept="video/*" style="font-size:11px;margin-top:6px" /><span id="e-lvideo-st" class="sub" style="font-size:10px;margin-left:8px">${meta.video_asset_id ? "🎬 vídeo anexado ✓" : ""}</span>
+    <label class="lbl">Fio</label><input class="field" id="e-yarn" value="${esc(meta.yarn || meta.pattern_analysis)}" />
+    <label class="lbl">Cor principal</label><input class="field" id="e-color" value="${esc(meta.main_color || meta.color_sequence)}" />
+    <label class="lbl">Agulha de crochê</label><input class="field" id="e-hook" value="${esc(meta.crochet_hook)}" />
     <label class="lbl">Materiais (um por linha)</label><textarea class="field" id="e-materials">${esc(matText)}</textarea>
-    <label class="lbl">Sequência de cores</label><textarea class="field" id="e-colors">${esc(meta.color_sequence)}</textarea>
-    <label class="lbl">Método de construção</label><textarea class="field" id="e-construction">${esc(meta.construction_method)}</textarea>
     <label class="lbl">Pontos usados (nome | confiança)</label><textarea class="field" id="e-stitches">${esc(stitchText)}</textarea>
-    <label class="lbl">Análise do padrão</label><textarea class="field" id="e-pattern">${esc(meta.pattern_analysis)}</textarea>
-    <label class="lbl">Nota de confiança</label><textarea class="field" id="e-confidence">${esc(meta.confidence_note)}</textarea>
 
     <div class="row" style="margin-top:18px"><h2 style="margin:0;font-size:15px">Passos</h2><div class="spacer"></div>
       <button class="btn ghost sm" type="button" id="e-add-step">+ passo</button></div>
@@ -937,6 +1042,7 @@ window.editFull = async (lessonId) => {
     <div id="e-status" class="sub" style="margin-top:10px"></div>
     <div class="row" style="margin-top:16px">
       <button class="btn" id="e-save">Salvar alterações</button>
+      <button class="btn ghost" type="button" id="e-preview">👁 Pré-visualizar</button>
       <button class="btn ghost" onclick="this.closest('.modal-bg').remove()">Fechar</button>
     </div>`);
 
@@ -955,18 +1061,28 @@ window.editFull = async (lessonId) => {
     } catch (e) { st.textContent = "erro: " + e.message; }
   };
 
+  let lessonVideoAssetId = meta.video_asset_id || null;
+  $("#e-lvideo-file", m).onchange = async (ev) => {
+    const f = ev.target.files[0]; if (!f) return;
+    const st = $("#e-lvideo-st", m); st.textContent = "enviando vídeo… (pode demorar)";
+    try {
+      const asset = await uploadAsset(f);
+      lessonVideoAssetId = asset.id;
+      $("#e-lvideo", m).value = "";
+      st.textContent = "🎬 vídeo da aula enviado ✓ (salve para aplicar)";
+    } catch (e) { st.textContent = "erro: " + e.message; }
+  };
+
   const buildStepContent = (card, n) => {
     const v = (cls) => $(cls, card).value.trim();
-    const goal = v(".s-goal"), pattern = v(".s-pattern");
+    const substeps = collectSubsteps(card);
     return {
       number: n,
       title: v(".s-title") || null,
-      goal: goal || null,
-      visual_description: v(".s-visual") || null,
+      time: parseTime(v(".s-time")),
+      substeps,
+      total: v(".s-total") || null,
       stitches_used: v(".s-stitches") || null,
-      pattern_used: pattern || null,
-      expected_result: v(".s-expected") || null,
-      instruction: [goal, pattern].filter(Boolean).join(" "),
       image_url: v(".s-image") || null, // URL colada tem prioridade; vazio = usa imagem enviada
     };
   };
@@ -990,13 +1106,14 @@ window.editFull = async (lessonId) => {
         </div>
         <div style="flex:1">
           <label class="lbl">Título</label><input class="field s-title" value="${esc(ct.title)}" />
-          <label class="lbl">Objetivo</label><textarea class="field s-goal">${esc(ct.goal)}</textarea>
         </div>
       </div>
-      <label class="lbl">Descrição visual</label><textarea class="field s-visual">${esc(ct.visual_description)}</textarea>
+      <label class="lbl">Tempo no vídeo da aula (mm:ss, opcional — vira capítulo)</label><input class="field s-time" value="${esc(fmtTime(ct.time))}" placeholder="ex.: 2:40" />
+      <label class="lbl">Sub-passos (mini-passos: título + descrição + vídeo próprio)</label>
+      <div class="substeps-wrap"></div>
+      <button class="btn ghost sm" type="button" data-act="add-substep" style="margin-top:6px">+ mini-passo</button>
+      <label class="lbl" style="margin-top:12px">Total (ex.: 12 pontos)</label><input class="field s-total" value="${esc(ct.total)}" />
       <label class="lbl">Pontos usados</label><textarea class="field s-stitches">${esc(ct.stitches_used)}</textarea>
-      <label class="lbl">Padrão usado</label><textarea class="field s-pattern">${esc(ct.pattern_used)}</textarea>
-      <label class="lbl">Resultado esperado</label><textarea class="field s-expected">${esc(ct.expected_result)}</textarea>
       <label class="lbl">URL da imagem (ou envie um arquivo acima)</label><input class="field s-image" value="${esc(ct.image_url)}" />`;
 
     // remover passo
@@ -1019,6 +1136,7 @@ window.editFull = async (lessonId) => {
       } catch (e) { st.textContent = "erro: " + e.message; }
     };
     stepsWrap.appendChild(card);
+    wireSubsteps(card, ct.substeps);
   };
 
   const renumber = () => $$(".step-card .step-n", m).forEach((el, i) => (el.textContent = `Passo ${i + 1}`));
@@ -1039,21 +1157,18 @@ window.editFull = async (lessonId) => {
       duration_min: Number($("#e-dur", m).value) || null,
       cover_url: coverAssetId ? "" : $("#e-cover", m).value.trim(),
       cover_asset_id: coverAssetId || null,
-      description: $("#e-desc", m).value.trim(),
       status: $("#e-pub", m).checked ? "published" : "draft",
       is_premium: $("#e-premium", m).checked,
       category_id: $("#e-category", m).value || null,
       meta: {
         product_name: $("#e-title", m).value.trim(),
-        overview: $("#e-overview", m).value.trim(),
-        difficulty_label: $("#e-diflabel", m).value.trim(),
-        finished_size: $("#e-size", m).value.trim(),
         materials: lines("e-materials"),
-        color_sequence: $("#e-colors", m).value.trim(),
-        construction_method: $("#e-construction", m).value.trim(),
+        yarn: $("#e-yarn", m).value.trim(),
+        main_color: $("#e-color", m).value.trim(),
+        crochet_hook: $("#e-hook", m).value.trim(),
+        video_url: $("#e-lvideo", m).value.trim() || null,
+        video_asset_id: lessonVideoAssetId || null,
         stitches,
-        pattern_analysis: $("#e-pattern", m).value.trim(),
-        confidence_note: $("#e-confidence", m).value.trim(),
       },
     }) });
     const cards = $$(".step-card", m);
@@ -1076,6 +1191,7 @@ window.editFull = async (lessonId) => {
     } catch (e) { $("#e-status", m).textContent = "erro: " + e.message; }
   };
 
+  $("#e-preview", m).onclick = () => previewSavedLesson(lesson.slug, m);
   $("#e-save", m).onclick = async () => {
     const btn = $("#e-save", m); btn.disabled = true; $("#e-status", m).textContent = "salvando…";
     try { await saveAll(); m.remove(); render("lessons"); }
@@ -1223,6 +1339,78 @@ function patternModal(p) {
 window.newPattern = () => patternModal(null);
 window.editPattern = async (id) => { const { pattern } = await api('/admin/patterns/' + id); patternModal(pattern); };
 window.delPattern = async (id) => { if (!confirm('Excluir esta receita?')) return; await api('/admin/patterns/' + id, { method: 'DELETE' }); render('patterns'); };
+
+// ─── Pontos (stitches) ──────────────────────────────────────────────
+views.stitches = async () => {
+  const { stitches } = await api('/admin/stitches');
+  const rows = stitches.map((s) =>
+    `<tr>
+      <td><strong>${esc(s.name_pt)}</strong> <span style="color:var(--muted)">${esc(s.abbrev || '')}</span><br><span style="color:var(--muted);font-size:13px">${esc(s.technique)} · ${esc(s.difficulty)}</span></td>
+      <td style="text-align:center">${s.video_url ? '🎬 sim' : '—'}</td>
+      <td class="row"><button class="btn ghost sm" onclick="editStitch('${s.id}')">editar</button>
+        <button class="btn danger sm" onclick="delStitch('${s.id}')">×</button></td>
+    </tr>`).join('') || `<tr><td colspan=3 class="empty">nenhum ponto</td></tr>`;
+  main.innerHTML = `<h1>Pontos</h1><div class="sub">Biblioteca de pontos do app — anexe o vídeo da técnica em cada um</div>
+    <div class="row" style="margin-bottom:12px"><div class="spacer"></div><button class="btn sm" onclick="newStitch()">+ ponto</button></div>
+    <table><tr><th>Ponto</th><th>Vídeo</th><th></th></tr>${rows}</table>`;
+};
+
+function stitchModal(s) {
+  const sel = (v, opts) => opts.map((o) => `<option value="${o}"${v === o ? ' selected' : ''}>${o}</option>`).join('');
+  let videoAssetId = s?.video_asset_id || '';
+  const m = modal(`<h3>${s && s.id ? 'Editar ponto' : 'Novo ponto'}</h3>
+    <label class="lbl">ID (slug)</label><input class="field" id="t-id" value="${esc(s?.id || '')}" placeholder="ex.: st-cr-023" ${s && s.id ? 'readonly' : ''} />
+    <div class="row">
+      <div style="flex:1"><label class="lbl">Nome (PT)</label><input class="field" id="t-pt" value="${esc(s?.name_pt || '')}" /></div>
+      <div style="flex:1"><label class="lbl">Nome (EN)</label><input class="field" id="t-en" value="${esc(s?.name_en || '')}" /></div>
+    </div>
+    <label class="lbl">Abreviação</label><input class="field" id="t-abbrev" value="${esc(s?.abbrev || '')}" placeholder="ex.: corr / ch" />
+    <div class="row">
+      <div style="flex:1"><label class="lbl">Técnica</label><select class="field" id="t-tech">${sel(s?.technique || 'crochet', ['crochet', 'knit'])}</select></div>
+      <div style="flex:1"><label class="lbl">Dificuldade</label><select class="field" id="t-diff">${sel(s?.difficulty || 'beginner', ['beginner', 'intermediate', 'advanced'])}</select></div>
+    </div>
+    <label class="lbl">Categorias (uma por linha)</label><textarea class="field" id="t-cats">${esc((s?.categories || []).join('\n'))}</textarea>
+    <label class="lbl">Descrição</label><textarea class="field" id="t-desc">${esc(s?.description || '')}</textarea>
+    <label class="lbl">Passos (um por linha)</label><textarea class="field" id="t-steps" style="min-height:120px">${esc((s?.steps || []).join('\n'))}</textarea>
+    <label class="lbl">Vídeo da técnica (envie um arquivo)</label>
+    <input type="file" id="t-vfile" accept="video/*" style="font-size:11px" />
+    <span id="t-vst" class="sub" style="font-size:11px;margin-left:8px">${videoAssetId ? '🎬 vídeo anexado ✓ — envie outro p/ trocar' : 'nenhum vídeo'}</span>
+    ${videoAssetId ? `<div style="margin-top:4px"><button class="btn ghost sm" type="button" id="t-vrm">remover vídeo</button></div>` : ''}
+    <div class="row" style="margin-top:12px"><button class="btn" id="t-save">Salvar</button><button class="btn ghost" onclick="this.closest('.modal-bg').remove()">Cancelar</button></div>`);
+  $('#t-vfile', m).onchange = async (ev) => {
+    const f = ev.target.files[0]; if (!f) return;
+    const st = $('#t-vst', m); st.textContent = 'enviando vídeo… (pode demorar)';
+    try {
+      const fd = new FormData(); fd.append('file', f);
+      const { asset } = await api('/admin/assets', { method: 'POST', body: fd });
+      videoAssetId = asset.id;
+      st.textContent = '🎬 vídeo enviado ✓';
+    } catch (e) { st.textContent = 'erro: ' + e.message; }
+  };
+  if ($('#t-vrm', m)) $('#t-vrm', m).onclick = () => { videoAssetId = ''; $('#t-vst', m).textContent = 'vídeo removido (salve para aplicar)'; };
+  const lines = (id) => $('#' + id, m).value.split('\n').map((x) => x.trim()).filter(Boolean);
+  $('#t-save', m).onclick = async () => {
+    const body = {
+      id: $('#t-id', m).value.trim(),
+      name_pt: $('#t-pt', m).value.trim(),
+      name_en: $('#t-en', m).value.trim() || $('#t-pt', m).value.trim(),
+      abbrev: $('#t-abbrev', m).value.trim(),
+      technique: $('#t-tech', m).value,
+      difficulty: $('#t-diff', m).value,
+      categories: lines('t-cats'),
+      description: $('#t-desc', m).value.trim(),
+      steps: lines('t-steps'),
+      video_asset_id: videoAssetId || null,
+    };
+    if (!body.id || !body.name_pt) { alert('Informe ID e Nome (PT).'); return; }
+    try { await api('/admin/stitches', { method: 'POST', body: JSON.stringify(body) }); }
+    catch (e) { alert('Falha ao salvar: ' + e.message); return; }
+    m.remove(); render('stitches');
+  };
+}
+window.newStitch = () => stitchModal(null);
+window.editStitch = async (id) => { const { stitch } = await api('/admin/stitches/' + id); stitchModal(stitch); };
+window.delStitch = async (id) => { if (!confirm('Excluir este ponto?')) return; await api('/admin/stitches/' + id, { method: 'DELETE' }); render('stitches'); };
 
 // ─── Comunidade (moderação) ─────────────────────────────────────────
 views.posts = async () => {
@@ -1436,6 +1624,334 @@ views.ai = async () => {
     <div class="card">As análises agora são gravadas no banco (tabela <code>analyses</code>) e o feedback em <code>feedback</code>.
     Veja o total na Visão geral. (Detalhamento por análise entra na próxima iteração.)</div>`;
 };
+
+// ─── Equipe: usuários que acessam só o painel (admin/editor) ────────
+views.team = async () => {
+  const { team } = await api("/admin/team");
+  const badge = (r) =>
+    r === "admin"
+      ? `<span style="background:#FBEDE8;color:#DB4631;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:700">Admin</span>`
+      : `<span style="background:#EDF1E8;color:#5b7a49;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:700">Editor</span>`;
+  const me = currentUser && currentUser.email;
+  const rows = (team || []).map((u) => `
+    <tr>
+      <td><strong>${esc(u.name || "—")}</strong><br><span class="sub">${esc(u.email)}</span></td>
+      <td>${badge(u.panel_role)}</td>
+      <td class="sub">${u.last_seen_at ? fmtDate(u.last_seen_at) : "nunca"}</td>
+      <td style="text-align:right">${
+        u.email === me
+          ? `<span class="sub">você</span>`
+          : `<button class="btn danger sm" data-del="${u.id}">remover</button>`
+      }</td>
+    </tr>`).join("");
+  main.innerHTML = `
+    <h1>Equipe</h1>
+    <div class="sub">Pessoas que acessam <strong>somente o painel</strong>.
+      <strong>Admin</strong> = acesso total. <strong>Editor</strong> = só conteúdo
+      (Aulas, Receitas, Pontos, Dicas, Comunidade).</div>
+    <div class="card" style="margin-top:16px">
+      <h2 style="margin:0 0 12px;font-size:15px">Novo acesso</h2>
+      <div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <input class="field" id="t-name" placeholder="Nome" style="flex:1;min-width:130px" />
+        <input class="field" id="t-email" type="email" placeholder="email@exemplo.com" style="flex:1.4;min-width:180px" />
+        <input class="field" id="t-pass" type="password" placeholder="Senha (mín. 8)" style="flex:1;min-width:140px" />
+        <select class="field" id="t-role" style="flex:0 0 130px">
+          <option value="editor">Editor</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button class="btn" id="t-add">Criar acesso</button>
+      </div>
+      <div id="t-status" class="sub" style="margin-top:8px"></div>
+    </div>
+    <table class="tbl" style="margin-top:18px">
+      <thead><tr><th>Pessoa</th><th>Papel</th><th>Último acesso</th><th></th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="4" class="empty">ninguém ainda</td></tr>`}</tbody>
+    </table>`;
+  $("#t-add", main).onclick = async () => {
+    const st = $("#t-status", main);
+    st.textContent = "criando…";
+    try {
+      await api("/admin/team", {
+        method: "POST",
+        body: JSON.stringify({
+          name: $("#t-name", main).value.trim() || undefined,
+          email: $("#t-email", main).value.trim(),
+          password: $("#t-pass", main).value,
+          panel_role: $("#t-role", main).value,
+        }),
+      });
+      render("team");
+    } catch (e) {
+      st.textContent = "erro: " + e.message;
+    }
+  };
+  main.querySelectorAll("[data-del]").forEach((b) => {
+    b.onclick = async () => {
+      if (!confirm("Remover o acesso desta pessoa ao painel?")) return;
+      try {
+        await api("/admin/team/" + b.dataset.del, { method: "DELETE" });
+        render("team");
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+  });
+};
+
+// ─── Preview da aula (mockups iOS + Android — réplica fiel do app) ───
+// Espelha o lib/presentation/pages/painel/lesson_detail_page.dart:
+// capa 248, título 31/w600, chips, "Step by step", botão coral "Play full
+// lesson", cards de passo (nº 30 coral, título 17/w700, sub-passos, total,
+// thumbnail de vídeo + "N capítulos"). Tokens iguais ao AppColors/AppTheme.
+const DIF_LABEL = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" };
+
+function collectPreviewData(m, p) {
+  const val = (id) => { const el = $(`#${p}-${id}`, m); return el ? el.value.trim() : ""; };
+  const stStr = ($(`#${p}-lvideo-st`, m)?.textContent || "");
+  const lessonVideo = !!val("lvideo") || stStr.includes("✓");
+  const steps = $$(".step-card", m).map((c) => {
+    const sv = ($(".s-video", c)?.value || "").trim();
+    return {
+      title: ($(".s-title", c)?.value || "").trim(),
+      time: parseTime($(".s-time", c)?.value || ""),
+      total: ($(".s-total", c)?.value || "").trim(),
+      image_url: ($(".s-image", c)?.value || "").trim(),
+      has_video: !!sv || !!c.dataset.videoAssetId,
+      substeps: collectSubsteps(c),
+    };
+  });
+  return {
+    title: val("title") || "Sem título",
+    difficulty: val("dif") || "beginner",
+    duration_min: Number(val("dur")) || 10,
+    cover_url: val("cover"),
+    lesson_video: lessonVideo,
+    steps,
+  };
+}
+
+function smpVideoThumb(imageUrl, badge) {
+  return `<div class="smp-video">` +
+    (imageUrl ? `<img src="${esc(imageUrl)}" />` : `<div class="smp-ph">🧶</div>`) +
+    `<div class="smp-vscrim"></div><div class="smp-playbtn">▶</div>` +
+    (badge ? `<div class="smp-chap">≋ ${esc(badge)}</div>` : "") + `</div>`;
+}
+
+// Cada mini-passo é um card com VÍDEO PRÓPRIO (quando houver) + título + descrição.
+function smpSubstep(ss, n) {
+  const poster = ss.video_poster_url || "";
+  const hasVid = poster || ss.video_url;
+  const vid = hasVid ? `<div style="margin-bottom:10px">${smpVideoThumb(poster, "")}</div>` : "";
+  return `<div style="border:1px solid #EBDCCE;border-radius:14px;padding:12px;margin-top:10px">${vid}` +
+    `<div class="smp-sub" style="padding:0"><div class="smp-subnum">${n}</div><div class="smp-subtxt">` +
+    (ss.title ? `<div class="smp-subt">${esc(ss.title)}</div>` : "") +
+    (ss.description ? `<div class="smp-subd">${esc(ss.description)}</div>` : "") +
+    `</div></div></div>`;
+}
+
+function smpStep(s, n) {
+  const titleRow = `<div class="smp-srow"><div class="smp-snum">${n}</div>` +
+    `<div class="smp-stitle">${esc(s.title || ("Passo " + n))}</div></div>`;
+  const instr = s.instruction ? `<div class="smp-instr">${esc(s.instruction)}</div>` : "";
+  const total = s.total ? `<div class="smp-total">Total: ${esc(s.total)}</div>` : "";
+  const banner = `<div class="smp-banner">${s.image_url ? `<img src="${esc(s.image_url)}"/>` : `<div class="smp-ph">🧶</div>`}</div>`;
+  const subs = s.substeps.length
+    ? `<div class="smp-gap"></div>` + s.substeps.map((ss, i) => smpSubstep(ss, i + 1)).join("")
+    : "";
+  return `<div class="smp-step">${banner}<div class="smp-spad">${titleRow}${instr}${subs}${total}</div></div>`;
+}
+
+// Mapeia a aula RESOLVIDA (/v1/lessons/:slug — mesmo dado do app) para o
+// formato do preview, com imagens reais (capa, imagem do passo = block.url,
+// poster de vídeo) e instrução. Espelha LessonBlock.stepImageUrl do app
+// (content.image_url ?? block.url).
+function lessonDataFromApi(json) {
+  const L = json.lesson || {};
+  const meta = L.meta || {};
+  const blocks = (json.blocks || []).filter((b) => b.type === "step");
+  const steps = blocks.map((b) => {
+    const c = b.content || {};
+    const subs = (c.substeps || []).map((s) =>
+      typeof s === "object"
+        ? {
+            title: (s.title || s.highlight || ""),
+            description: (s.description || s.detail || ""),
+            video_url: s.video_url || "",
+            video_poster_url: s.video_poster_url || "",
+          }
+        : { title: String(s), description: "", video_url: "", video_poster_url: "" });
+    return {
+      title: c.title || "",
+      instruction: c.instruction || "",
+      time: c.time ?? null, // usado só pelos capítulos do vídeo da aula
+      total: c.total || "",
+      image_url: c.image_url || b.url || "",
+      substeps: subs,
+    };
+  });
+  return {
+    title: L.title || "Sem título",
+    difficulty: L.difficulty || "beginner",
+    duration_min: L.duration_min || 10,
+    cover_url: L.cover_url || "",
+    lesson_video: !!meta.video_url,
+    steps,
+  };
+}
+
+// Preview da aula SALVA (resolvida, com imagens). Cai pro form se falhar
+// (rascunho não publicado / sem slug).
+async function previewSavedLesson(slug, m) {
+  try {
+    if (!slug) throw new Error("sem slug");
+    const json = await api("/lessons/" + slug);
+    openLessonPreview(lessonDataFromApi(json));
+  } catch (_) {
+    openLessonPreview(collectPreviewData(m, "e"));
+  }
+}
+
+function lessonScreenHTML(d) {
+  const dif = DIF_LABEL[d.difficulty] || "Beginner";
+  const showPlay = d.lesson_video && d.steps.some((s) => s.time != null);
+  const cover = d.cover_url
+    ? `<img src="${esc(d.cover_url)}" />`
+    : `<div class="smp-ph" style="font-size:48px">🧶</div>`;
+  return `
+    <div class="smp-coverwrap">${cover}<div class="smp-coverscrim"></div>
+      <div class="smp-backbtn">‹</div></div>
+    <div class="smp-content">
+      <div class="smp-ltitle">${esc(d.title)}</div>
+      <div class="smp-chips">
+        <span class="smp-chip">▟ ${dif}</span>
+        <span class="smp-chip">◷ ${d.duration_min} min</span>
+        <span class="smp-chip">≣ ${d.steps.length} steps</span>
+      </div>
+      <div class="smp-h2">Step by step</div>
+      ${showPlay ? `<div class="smp-playfull">▶&nbsp; Play full lesson</div>` : ""}
+      ${d.steps.map((s, i) => smpStep(s, i + 1)).join("")}
+      <div class="smp-done">✓ Concluir</div>
+    </div>`;
+}
+
+let _smpStyled = false;
+function injectPreviewStyles() {
+  if (_smpStyled) return;
+  _smpStyled = true;
+  const css = `
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+  .smp-overlay{position:fixed;inset:0;background:rgba(20,14,10,.6);backdrop-filter:blur(3px);
+    z-index:9999;display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px;overflow:auto}
+  .smp-bar{display:flex;align-items:center;gap:14px;color:#fff;font-family:Poppins,sans-serif}
+  .smp-bar h3{margin:0;font-size:18px;font-weight:700}
+  .smp-close{margin-left:auto;background:#fff;border:none;border-radius:20px;padding:8px 16px;
+    font-family:Poppins;font-weight:600;cursor:pointer}
+  .smp-row{display:flex;gap:34px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  .smp-dev{font-family:Poppins,sans-serif}
+  .smp-devlabel{color:#fff;text-align:center;font-family:Poppins;font-size:13px;font-weight:600;
+    margin-bottom:10px;opacity:.9}
+  /* Frame iPhone */
+  .smp-ios{width:390px;border:12px solid #0e0e0e;border-radius:54px;overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.45);position:relative;background:#000}
+  .smp-ios .smp-notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    width:120px;height:30px;background:#0e0e0e;border-radius:18px;z-index:5}
+  /* Frame Android */
+  .smp-and{width:360px;border:9px solid #0e0e0e;border-radius:34px;overflow:hidden;
+    box-shadow:0 24px 60px rgba(0,0,0,.45);position:relative;background:#000}
+  .smp-and .smp-hole{position:absolute;top:12px;left:50%;transform:translateX(-50%);
+    width:11px;height:11px;background:#0e0e0e;border-radius:50%;z-index:5}
+  /* Tela (conteúdo do app) */
+  .smp-screen{height:660px;overflow-y:auto;background:#FAFAFA;color:#2B211B;
+    font-family:Poppins,sans-serif;-webkit-font-smoothing:antialiased}
+  .smp-statusbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 22px 6px;font-size:13px;font-weight:600;color:#2B211B}
+  .smp-statusbar.dark{color:#2B211B}
+  /* Capa */
+  .smp-coverwrap{position:relative;height:248px;background:#F7E4D7}
+  .smp-coverwrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .smp-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    background:#F7E4D7;font-size:40px}
+  .smp-coverscrim{position:absolute;top:0;left:0;right:0;height:110px;
+    background:linear-gradient(to bottom,rgba(0,0,0,.28),transparent)}
+  .smp-backbtn{position:absolute;top:14px;left:16px;width:40px;height:40px;border-radius:50%;
+    background:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;
+    color:#2B211B;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  /* Conteúdo */
+  .smp-content{padding:20px 24px 40px}
+  .smp-ltitle{font-size:31px;font-weight:600;line-height:1.08;letter-spacing:-.5px;color:#2B211B}
+  .smp-chips{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+  .smp-chip{background:#fff;border:1px solid #ECECEC;border-radius:20px;padding:7px 13px;
+    font-size:13px;font-weight:500;color:#2B211B}
+  .smp-h2{font-size:21px;font-weight:600;letter-spacing:-.3px;margin-top:24px;color:#2B211B}
+  .smp-playfull{margin-top:14px;background:#F2604E;color:#fff;border-radius:16px;height:56px;
+    display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;
+    box-shadow:0 6px 16px rgba(242,96,78,.35)}
+  /* Card de passo */
+  .smp-step{background:#fff;border-radius:22px;margin-top:16px;overflow:hidden;
+    box-shadow:0 6px 18px rgba(74,53,38,.06)}
+  .smp-banner{height:197px;background:#F7E4D7}
+  .smp-banner img{width:100%;height:100%;object-fit:cover;display:block}
+  .smp-spad{padding:18px}
+  .smp-gap{height:14px}
+  .smp-srow{display:flex;align-items:flex-start;gap:12px}
+  .smp-snum{width:30px;height:30px;border-radius:50%;background:#F2604E;color:#fff;flex:0 0 30px;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+  .smp-stitle{font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.25;color:#2B211B;padding-top:3px}
+  .smp-sub{display:flex;align-items:flex-start;gap:12px;padding:7px 0}
+  .smp-subnum{width:26px;height:26px;border-radius:50%;background:#F7E4D7;color:#6B5D53;flex:0 0 26px;
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+  .smp-subt{font-size:15px;font-weight:700;line-height:1.35;color:#2B211B}
+  .smp-subd{font-size:15px;line-height:1.4;color:#6B5D53;margin-top:2px}
+  .smp-instr{margin-top:12px;font-size:15px;line-height:1.5;color:#2B211B}
+  .smp-total{margin-top:12px;font-size:13px;font-weight:600;color:#A89A8E}
+  /* Thumbnail de vídeo */
+  .smp-video{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:16/9;background:#F7E4D7}
+  .smp-video img{width:100%;height:100%;object-fit:cover;display:block}
+  .smp-vscrim{position:absolute;inset:0;background:rgba(0,0,0,.18)}
+  .smp-playbtn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:58px;height:58px;
+    border-radius:50%;background:#F2604E;color:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:24px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+  .smp-chap{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff;
+    border-radius:20px;padding:5px 10px;font-size:12px;font-weight:600}
+  .smp-done{margin:28px 0 0;background:#F2604E;color:#fff;border-radius:16px;height:52px;
+    display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+  `;
+  const el = document.createElement("style");
+  el.textContent = css;
+  document.head.appendChild(el);
+}
+
+function deviceFrame(kind, screenInner) {
+  const isIos = kind === "ios";
+  const chrome = isIos
+    ? `<div class="smp-notch"></div><div class="smp-statusbar"><span>9:41</span><span>📶 􀙇 100%</span></div>`
+    : `<div class="smp-hole"></div><div class="smp-statusbar"><span>9:41</span><span>📶 ▮ 100%</span></div>`;
+  return `<div class="smp-dev">
+    <div class="smp-devlabel">${isIos ? "iPhone (iOS)" : "Android"}</div>
+    <div class="smp-${isIos ? "ios" : "and"}">
+      <div class="smp-screen">${chrome}${screenInner}</div>
+    </div></div>`;
+}
+
+function openLessonPreview(d) {
+  injectPreviewStyles();
+  const inner = lessonScreenHTML(d);
+  const ov = document.createElement("div");
+  ov.className = "smp-overlay";
+  ov.innerHTML = `
+    <div class="smp-bar" style="width:100%;max-width:820px">
+      <h3>Pré-visualização da aula</h3>
+      <span style="opacity:.8;font-size:13px">Como fica no app (iOS e Android)</span>
+      <button class="smp-close">Fechar</button>
+    </div>
+    <div class="smp-row">
+      ${deviceFrame("ios", inner)}
+      ${deviceFrame("and", inner)}
+    </div>`;
+  ov.querySelector(".smp-close").onclick = () => ov.remove();
+  ov.onclick = (e) => { if (e.target === ov) ov.remove(); };
+  document.body.appendChild(ov);
+}
 
 // ─── Boot ───────────────────────────────────────────────────────────
 initAuth();

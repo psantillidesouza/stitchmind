@@ -289,12 +289,7 @@ class _ActiveView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(active.section.toUpperCase(),
-                  style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 11,
-                      letterSpacing: 1,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.coral)),
+                  style: AppText.eyebrow.copyWith(color: AppColors.coral)),
               const SizedBox(height: 10),
               Text(
                 active.row.stitchCount != null

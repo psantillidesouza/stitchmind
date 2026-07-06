@@ -24,23 +24,33 @@ class AnalyticsService {
   Future<void> setUser(String? uid) => _safe(() => _analytics.setUserId(id: uid));
 
   // ─── Eventos do funil ──────────────────────────────────────────────
-  Future<void> logPaywallView({String? source}) => _safe(() => _analytics.logEvent(
-        name: 'paywall_view',
-        parameters: {if (source != null) 'source': source},
-      ));
+  Future<void> logPaywallView({String? source, String? variant}) =>
+      _safe(() => _analytics.logEvent(
+            name: 'paywall_view',
+            parameters: {
+              if (source != null) 'source': source,
+              if (variant != null) 'paywall_variant': variant,
+            },
+          ));
 
-  Future<void> logPaywallPurchaseTap(String productId) => _safe(() => _analytics.logEvent(
-        name: 'paywall_purchase_tap',
-        parameters: {'product_id': productId},
-      ));
+  Future<void> logPaywallPurchaseTap(String productId, {String? variant}) =>
+      _safe(() => _analytics.logEvent(
+            name: 'paywall_purchase_tap',
+            parameters: {
+              'product_id': productId,
+              if (variant != null) 'paywall_variant': variant,
+            },
+          ));
 
-  Future<void> logPurchaseSuccess(String productId, {double? value, String? currency}) =>
+  Future<void> logPurchaseSuccess(String productId,
+          {double? value, String? currency, String? variant}) =>
       _safe(() => _analytics.logEvent(
             name: 'purchase_success',
             parameters: {
               'product_id': productId,
               if (value != null) 'value': value,
               if (currency != null) 'currency': currency,
+              if (variant != null) 'paywall_variant': variant,
             },
           ));
 

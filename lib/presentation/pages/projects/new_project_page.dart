@@ -223,13 +223,7 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(
-        fontFamily: 'Poppins',
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 1.2,
-        color: AppColors.terracottaDeep,
-      ),
+      style: AppText.eyebrow.copyWith(color: AppColors.terracottaDeep),
     );
   }
 }
@@ -306,14 +300,14 @@ class _TechCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppRadii.card),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(vertical: 20),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected ? AppColors.walnut : AppColors.paper,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           border: Border.all(
             color: selected ? AppColors.walnut : AppColors.linen,
           ),

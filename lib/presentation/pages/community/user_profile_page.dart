@@ -121,7 +121,7 @@ class UserProfilePage extends ConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: p.isFollowing ? AppColors.linen : AppColors.coral,
               foregroundColor: p.isFollowing ? AppColors.walnut : Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.button)),
             ),
             onPressed: () async {
               if (p.isFollowing) {

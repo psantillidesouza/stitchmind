@@ -7,6 +7,7 @@ import '../../../core/lesson_format.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../data/local/saved_lessons_store.dart';
+import '../../widgets/app_chips.dart';
 import '../../widgets/gradient_bg.dart';
 
 /// Abre uma aula salva e renderiza em CARDS de passo (estilo das aulas do app):
@@ -57,8 +58,8 @@ class _StructuredView extends StatelessWidget {
           spacing: 10,
           runSpacing: 10,
           children: [
-            _Chip(icon: Icons.auto_awesome_rounded, label: context.l10n.tr('savedview_chip_stitch')),
-            _Chip(
+            AppMetaChip(icon: Icons.auto_awesome_rounded, label: context.l10n.tr('savedview_chip_stitch')),
+            AppMetaChip(
                 icon: Icons.format_list_numbered_rounded,
                 label: context.l10n.tr('savedview_chip_steps', {'n': '${lesson.steps.length}'})),
           ],
@@ -131,7 +132,7 @@ class _StepCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         boxShadow: softShadow(0.06),
       ),
       padding: const EdgeInsets.all(18),
@@ -187,7 +188,7 @@ class _SectionCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         boxShadow: softShadow(0.05),
       ),
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
@@ -237,33 +238,6 @@ class _Bullet extends StatelessWidget {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(13),
-        boxShadow: softShadow(0.04),
-      ),
-      child: Row(children: [
-        Icon(icon, size: 15, color: AppColors.coral),
-        const SizedBox(width: 6),
-        Text(label,
-            style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.walnut)),
-      ]),
-    );
-  }
-}
-
 class _LessonPhoto extends StatelessWidget {
   const _LessonPhoto({required this.path});
   final String? path;
@@ -302,7 +276,7 @@ class _MarkdownFallback extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(AppRadii.card),
             boxShadow: softShadow(0.05),
           ),
           child: GptMarkdown(markdown,

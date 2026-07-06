@@ -33,6 +33,7 @@ class AppColors {
   static const terracotta = Color(0xFFF2604E); // alias p/ código existente
   static const terracottaDeep = Color(0xFFDB4631);
   static const ochre = Color(0xFFF5A623); // badge "Pro"
+  static const ochreSoft = Color(0xFFFDF1DD); // wash de ochre p/ badges "em progresso"
   static const gold = Color(0xFFF5B731); // estrelas
   static const sage = Color(0xFF7C9A6A);
   static const sageSoft = Color(0xFFEDF1E8);
@@ -40,9 +41,57 @@ class AppColors {
   // ── Sombra quente (não cinza neutro) ────────────────────────────────
   static const shadow = Color(0xFF4A3526);
 
+  // ── Gradientes de capa dos patterns (tricô x crochê) ────────────────
+  static const knitGradTop = Color(0xFFD4A24A);
+  static const knitGradBottom = Color(0xFFC75D3C);
+  static const crochetGradTop = sage; // 0xFF7C9A6A
+  static const crochetGradBottom = Color(0xFF445E3A);
+
+  // ── Superfícies escuras da paywall ──────────────────────────────────
+  static const paywallBg = Color(0xFF0E0B0A);
+  static const paywallCard = Color(0xFF1C1714);
+  static const paywallCardLine = Color(0xFF332A25);
+
   // ── Dark (placeholder) ──────────────────────────────────────────────
   static const inkSurface = Color(0xFF1A1410);
   static const inkPaper = Color(0xFF231B14);
   static const inkLinen = Color(0xFF3A2E22);
 
+}
+
+/// Escala de raios de borda do design system.
+/// card/superfícies = 24 · chip = 8 · botão preenchido = 30 · campo/botão
+/// secundário = 12. Use estes tokens em vez de valores mágicos (14/16/18/20/22).
+class AppRadii {
+  AppRadii._();
+
+  static const chip = 8.0;
+  static const field = 12.0;
+  static const card = 24.0;
+  static const button = 30.0;
+}
+
+/// Estilos de texto semânticos que não têm equivalente direto no `textTheme`
+/// do Material. A cor é definida por contexto via `.copyWith(color: ...)`.
+class AppText {
+  AppText._();
+
+  /// Overline/eyebrow: rótulo pequeno com tracking, usado em títulos de seção
+  /// e cursos (ex.: "CONTINUAR DE ONDE PAROU"). Canônico: 11 / w700 / ls 1.2.
+  static const eyebrow = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1.2,
+    height: 1.2,
+  );
+
+  /// Selo/badge: texto de pílula pequena (Premium, WIP, tipo de post).
+  /// Canônico: 11 / w800 / ls 0.3.
+  static const badge = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 11,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0.3,
+  );
 }

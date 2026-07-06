@@ -548,13 +548,7 @@ class _TierCardState extends State<_TierCard> {
                       children: [
                         Text(
                           widget.eyebrow.toUpperCase(),
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.4,
-                            color: AppColors.terracottaDeep,
-                          ),
+                          style: AppText.eyebrow.copyWith(color: AppColors.terracottaDeep),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -624,13 +618,7 @@ class _Tier1Card extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             context.l10n.tr('analyze_tier1_stitches_label'),
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.4,
-              color: AppColors.walnutMuted,
-            ),
+            style: AppText.eyebrow.copyWith(color: AppColors.walnutMuted),
           ),
           const SizedBox(height: 8),
           ...tier1.mainStitches.map(

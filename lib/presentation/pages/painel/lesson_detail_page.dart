@@ -7,9 +7,13 @@ import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/lesson.dart';
 import '../../providers/platform_providers.dart';
 import '../../providers/recent_lessons_provider.dart';
+import '../../widgets/app_chips.dart';
 import '../../widgets/cover_placeholder.dart';
 import '../../widgets/gradient_bg.dart';
+import '../../widgets/lesson_video.dart';
 import '../../widgets/premium_gate.dart';
+import '../../widgets/synced_video.dart';
+import 'lesson_video_player.dart';
 
 class LessonDetailPage extends ConsumerStatefulWidget {
   const LessonDetailPage({required this.slug, super.key});
@@ -170,6 +174,9 @@ class _LessonBodyState extends ConsumerState<_LessonBody> {
     final steps = widget.detail.blocks.where((b) => b.type == 'step').toList()
       ..sort((a, b) => a.position.compareTo(b.position));
     final otherBlocks = widget.detail.blocks.where((b) => b.type != 'step').toList();
+    // Vídeo da aula com capítulos = passos que têm tempo marcado.
+    final hasLessonVideo =
+        (l.lessonVideoUrl ?? '').isNotEmpty && steps.any((s) => s.stepTime != null);
 
     return CustomScrollView(
       slivers: [
@@ -185,9 +192,7 @@ class _LessonBodyState extends ConsumerState<_LessonBody> {
               children: [
                 if (l.courseTitle != null)
                   Text(l.courseTitle!.toUpperCase(),
-                      style: const TextStyle(
-                          fontFamily: 'Poppins', fontSize: 11, letterSpacing: 1.2,
-                          fontWeight: FontWeight.w700, color: AppColors.coral)),
+                      style: AppText.eyebrow.copyWith(color: AppColors.coral)),
                 const SizedBox(height: 6),
                 Text(l.title, style: Theme.of(context).textTheme.displayMedium),
                 const SizedBox(height: 16),
@@ -195,9 +200,9 @@ class _LessonBodyState extends ConsumerState<_LessonBody> {
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    _Chip(icon: Icons.signal_cellular_alt_rounded, label: _difLabel(context, l.difficulty)),
-                    _Chip(icon: Icons.schedule_rounded, label: context.l10n.tr('lesson_chip_minutes', {'n': '${l.durationMin ?? 10}'})),
-                    _Chip(icon: Icons.format_list_numbered_rounded, label: context.l10n.tr('lesson_chip_steps', {'n': '${steps.length}'})),
+                    AppMetaChip(icon: Icons.signal_cellular_alt_rounded, label: _difLabel(context, l.difficulty)),
+                    AppMetaChip(icon: Icons.schedule_rounded, label: context.l10n.tr('lesson_chip_minutes', {'n': '${l.durationMin ?? 10}'})),
+                    AppMetaChip(icon: Icons.format_list_numbered_rounded, label: context.l10n.tr('lesson_chip_steps', {'n': '${steps.length}'})),
                   ],
                 ),
                 if (l.description.isNotEmpty) ...[
@@ -212,6 +217,65 @@ class _LessonBodyState extends ConsumerState<_LessonBody> {
             ),
           ),
         ),
+
+        // ── Vídeo da aula: botão "Play full lesson" → player full-screen ──
+        if (hasLessonVideo)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
+            sliver: SliverToBoxAdapter(
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => LessonVideoPlayerPage(
+                      url: l.lessonVideoUrl!,
+                      posterUrl: l.lessonVideoPoster ?? l.coverUrl,
+                      chapters: [
+                        for (var i = 0; i < steps.length; i++)
+                          if (steps[i].stepTime != null)
+                            SyncedChapter(
+                              title: steps[i].stepTitle.isNotEmpty
+                                  ? steps[i].stepTitle
+                                  : 'Step ${i + 1}',
+                              timeSeconds: steps[i].stepTime ?? 0,
+                            ),
+                      ],
+                    ),
+                  ),
+                ),
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.coral,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.coral.withValues(alpha: 0.35),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.play_arrow_rounded,
+                          color: Colors.white, size: 26),
+                      SizedBox(width: 8),
+                      Text(
+                        'Play full lesson',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
 
         // ── Passos ──
         SliverPadding(
@@ -330,31 +394,6 @@ class _RoundBtn extends StatelessWidget {
   }
 }
 
-class _Chip extends StatelessWidget {
-  const _Chip({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: softShadow(0.04),
-      ),
-      child: Row(children: [
-        Icon(icon, size: 15, color: AppColors.coral),
-        const SizedBox(width: 6),
-        Text(label,
-            style: const TextStyle(
-                fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600,
-                color: AppColors.walnut)),
-      ]),
-    );
-  }
-}
-
 // ─── Card de passo (foto + número + instrução) ──────────────────────
 class _StepCard extends StatelessWidget {
   const _StepCard({required this.block, required this.index});
@@ -363,17 +402,18 @@ class _StepCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = block.stepNumber > 0 ? block.stepNumber : index;
+    final subs = block.stepSubsteps;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         boxShadow: softShadow(0.06),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Foto do passo (horizontal 16:9)
+          // Topo: foto 16:9 do passo (o vídeo agora é por mini-passo).
           AspectRatio(
             aspectRatio: 16 / 9,
             child: block.stepImageUrl != null
@@ -408,9 +448,36 @@ class _StepCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(block.stepInstruction,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5)),
+                if (block.stepInstruction.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(block.stepInstruction,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.5)),
+                ],
+                if (block.stepTip.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  _StepTip(text: block.stepTip),
+                ],
+                if (subs.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  ...subs.asMap().entries.map(
+                        (e) => _Substep(
+                          n: e.key + 1,
+                          title: e.value.title,
+                          description: e.value.description,
+                          videoUrl: e.value.videoUrl,
+                          videoPoster: e.value.videoPoster,
+                        ),
+                      ),
+                ],
+                if (block.stepTotal.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text('Total: ${block.stepTotal}',
+                      style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.walnutMuted)),
+                ],
               ],
             ),
           ),
@@ -424,4 +491,111 @@ class _StepCard extends StatelessWidget {
         child: const Center(
             child: Icon(Icons.image_outlined, size: 40, color: AppColors.walnutMuted)),
       );
+}
+
+// ─── Dica do passo (caixa 💡) ───────────────────────────────────────
+class _StepTip extends StatelessWidget {
+  const _StepTip({required this.text});
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.peach.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('💡', style: TextStyle(fontSize: 16)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(text,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(height: 1.4, color: AppColors.walnut)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Mini-passo: card com VÍDEO próprio + número + título + descrição ───
+class _Substep extends StatelessWidget {
+  const _Substep({
+    required this.n,
+    required this.title,
+    required this.description,
+    this.videoUrl = '',
+    this.videoPoster,
+  });
+  final int n;
+  final String title;
+  final String description;
+  final String videoUrl;
+  final String? videoPoster;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodyLarge;
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: AppColors.linen.withValues(alpha: 0.7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (videoUrl.isNotEmpty) ...[
+            LessonVideo(url: videoUrl, posterUrl: videoPoster, borderRadius: 12),
+            const SizedBox(height: 10),
+          ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 26,
+                height: 26,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                    color: AppColors.peach, shape: BoxShape.circle),
+                child: Text('$n',
+                    style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.walnutSoft)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (title.isNotEmpty)
+                      Text(title,
+                          style: base?.copyWith(
+                              height: 1.35, fontWeight: FontWeight.w700)),
+                    if (description.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.only(top: title.isNotEmpty ? 2 : 0),
+                        child: Text(description,
+                            style: base?.copyWith(
+                                height: 1.4, color: AppColors.walnutSoft)),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

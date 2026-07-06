@@ -95,13 +95,7 @@ class InicioPage extends ConsumerWidget {
                   children: [
                     Row(children: [
                       Text(_greeting(context).toUpperCase(),
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.4,
-                            color: AppColors.walnutMuted,
-                          )),
+                          style: AppText.eyebrow.copyWith(color: AppColors.walnutMuted)),
                       const SizedBox(width: 6),
                       const Icon(Icons.wb_sunny_rounded, size: 14, color: AppColors.ochre),
                     ]),
@@ -354,7 +348,7 @@ class _TipCard extends StatelessWidget {
   static const _palettes = <List<Color>>[
     [AppColors.coralSoft, AppColors.coral],
     [AppColors.sageSoft, AppColors.sage],
-    [Color(0xFFFDF1DD), AppColors.ochre],
+    [AppColors.ochreSoft, AppColors.ochre],
   ];
 
   @override
@@ -526,9 +520,7 @@ class _LessonTile extends StatelessWidget {
                   children: [
                     if (lesson.courseTitle != null)
                       Text(lesson.courseTitle!.toUpperCase(),
-                          style: const TextStyle(
-                              fontFamily: 'Poppins', fontSize: 10, letterSpacing: 1,
-                              fontWeight: FontWeight.w700, color: AppColors.coral)),
+                          style: AppText.eyebrow.copyWith(color: AppColors.coral)),
                     const SizedBox(height: 4),
                     Text(lesson.title,
                         maxLines: 2, overflow: TextOverflow.ellipsis,

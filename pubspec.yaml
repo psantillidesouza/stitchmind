@@ -1,7 +1,7 @@
 name: stitchmind
 description: Crochê, Tricô & Knit — biblioteca de pontos, contador e gerenciador de projetos.
 publish_to: "none"
-version: 1.5.1+7
+version: 1.6.1+9
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -65,6 +65,10 @@ dependencies:
   crypto: ^3.0.7
   gpt_markdown: ^1.1.7
   firebase_analytics: ^12.4.2
+
+  # Player de vídeo das aulas/pontos (tutoriais) — estilo YarnPal.
+  video_player: ^2.9.2
+  chewie: ^1.8.5
 
 dev_dependencies:
   flutter_test:

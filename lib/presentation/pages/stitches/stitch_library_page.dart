@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/entities.dart';
 import '../../providers/providers.dart';
+import '../../widgets/gradient_bg.dart';
 
 class StitchLibraryPage extends ConsumerStatefulWidget {
   const StitchLibraryPage({super.key});
@@ -41,10 +42,20 @@ class _StitchLibraryPageState extends ConsumerState<StitchLibraryPage> {
     final favsAsync = ref.watch(favoriteStitchesProvider);
     final favs = favsAsync.valueOrNull ?? const <String>{};
 
-    return SafeArea(
-      child: stitchesAsync.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator()),
+    return GradientBg(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => context.pop()),
+        ),
+        body: SafeArea(
+          child: stitchesAsync.when(
+            loading: () =>
+                const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erro: $e')),
         data: (stitches) {
           final filtered =
@@ -180,6 +191,8 @@ class _StitchLibraryPageState extends ConsumerState<StitchLibraryPage> {
           );
         },
       ),
+        ),
+      ),
     );
   }
 }
@@ -205,7 +218,7 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? AppColors.walnut : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadii.chip),
           border: Border.all(
             color: selected ? AppColors.walnut : AppColors.linen,
           ),
@@ -245,12 +258,12 @@ class _StitchTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadii.card),
       onTap: () => context.push('/stitches/${stitch.id}'),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.paper,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           border: Border.all(color: AppColors.linen),
         ),
         padding: const EdgeInsets.all(16),

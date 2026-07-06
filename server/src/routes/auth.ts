@@ -20,7 +20,7 @@ authRoutes.post("/admin-login", rateLimit({ max: 8, windowMs: 5 * 60_000, prefix
   const { email, password } = parsed.data;
 
   const [u] = await sql`
-    SELECT id, email, name, password_hash FROM users
+    SELECT id, email, name, password_hash, COALESCE(panel_role, 'admin') AS panel_role FROM users
     WHERE lower(email) = lower(${email}) AND role = 'admin' AND password_hash IS NOT NULL`;
   if (!u) return c.json({ error: "Credenciais inválidas." }, 401);
 
@@ -28,7 +28,7 @@ authRoutes.post("/admin-login", rateLimit({ max: 8, windowMs: 5 * 60_000, prefix
   if (!ok) return c.json({ error: "Credenciais inválidas." }, 401);
 
   const token = await signAdminToken({ uid: u.id, email: u.email });
-  return c.json({ token, user: { email: u.email, name: u.name } });
+  return c.json({ token, user: { email: u.email, name: u.name, panel_role: u.panel_role } });
 });
 
 // O register/login/reset acontecem no Firebase (no app). Aqui só sincronizamos

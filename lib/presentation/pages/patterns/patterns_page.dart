@@ -63,11 +63,11 @@ class _PatternCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => context.push('/patterns/${pattern.id}'),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppRadii.card),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.paper,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           border: Border.all(color: AppColors.linen),
         ),
         child: Column(
@@ -84,12 +84,12 @@ class _PatternCard extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: pattern.technique == StitchTechnique.knit
                       ? const [
-                          Color(0xFFD4A24A),
-                          Color(0xFFC75D3C),
+                          AppColors.knitGradTop,
+                          AppColors.knitGradBottom,
                         ]
                       : const [
-                          Color(0xFF7C9A6A),
-                          Color(0xFF445E3A),
+                          AppColors.crochetGradTop,
+                          AppColors.crochetGradBottom,
                         ],
                 ),
               ),
@@ -153,7 +153,7 @@ class _Tag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.chip),
       ),
       child: Text(
         label,

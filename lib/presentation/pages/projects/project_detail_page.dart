@@ -128,7 +128,7 @@ class ProjectDetailPage extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppColors.paper,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadii.card),
                 border: Border.all(color: AppColors.linen),
               ),
               child: Column(
@@ -247,12 +247,12 @@ class _PatternLink extends ConsumerWidget {
         if (pattern == null) return const SizedBox.shrink();
         return InkWell(
           onTap: () => context.push('/patterns/$patternId'),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: AppColors.paper,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppRadii.card),
               border: Border.all(color: AppColors.linen),
             ),
             child: Row(
@@ -267,15 +267,9 @@ class _PatternLink extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'SEGUINDO A RECEITA',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
-                          color: AppColors.terracottaDeep,
-                        ),
+                        style: AppText.eyebrow.copyWith(color: AppColors.terracottaDeep),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -315,7 +309,7 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.chip),
       ),
       child: Text(
         status.labelPt,

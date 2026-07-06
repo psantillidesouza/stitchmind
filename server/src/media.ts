@@ -24,6 +24,17 @@ async function runBinary(cmd: string[]): Promise<void> {
   }
 }
 
+async function runBinaryOut(cmd: string[]): Promise<string> {
+  const proc = Bun.spawn(cmd, { stdout: "pipe", stderr: "pipe" });
+  const out = await new Response(proc.stdout).text();
+  const exit = await proc.exited;
+  if (exit !== 0) {
+    const err = await new Response(proc.stderr).text();
+    throw new Error(`${cmd[0]} saiu com código ${exit}: ${err.slice(-300)}`);
+  }
+  return out;
+}
+
 function extOf(filename: string, fallback: string): string {
   return filename.includes(".") ? filename.split(".").pop()!.toLowerCase() : fallback;
 }
@@ -92,4 +103,43 @@ export async function videoToMp4(
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+}
+
+/** Extrai poster (WebP, máx 720px) + duração (s) de um vídeo. Best-effort. */
+export async function videoMeta(
+  input: Uint8Array,
+): Promise<{ posterWebp: Uint8Array | null; durationS: number | null }> {
+  const dir = await mkdtemp(join(tmpdir(), "sm-vmeta-"));
+  const inPath = join(dir, "in.mp4");
+  const posterPath = join(dir, "poster.webp");
+  let posterWebp: Uint8Array | null = null;
+  let durationS: number | null = null;
+  try {
+    await writeFile(inPath, input);
+    // Duração via ffprobe.
+    try {
+      const out = await runBinaryOut([
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", inPath,
+      ]);
+      const s = parseFloat(out.trim());
+      if (!Number.isNaN(s) && s > 0) durationS = Math.round(s);
+    } catch (e) {
+      console.warn("[media] ffprobe duração falhou:", (e as Error).message);
+    }
+    // Poster: 1 frame (~1s, ou 0 se o vídeo for curtíssimo), escalado p/ máx 720 de largura.
+    const ss = durationS != null && durationS < 2 ? "0" : "1";
+    try {
+      await runBinary([
+        "ffmpeg", "-y", "-ss", ss, "-i", inPath, "-frames:v", "1",
+        "-vf", "scale='min(720,iw)':-2", "-f", "webp", posterPath,
+      ]);
+      posterWebp = new Uint8Array(await readFile(posterPath));
+    } catch (e) {
+      console.warn("[media] poster do vídeo falhou:", (e as Error).message);
+    }
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+  return { posterWebp, durationS };
 }

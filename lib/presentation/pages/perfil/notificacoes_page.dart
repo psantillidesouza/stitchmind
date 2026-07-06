@@ -153,7 +153,7 @@ class _Card extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.hairline),
       ),
       clipBehavior: Clip.antiAlias,

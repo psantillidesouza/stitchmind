@@ -162,7 +162,7 @@ class _PublishPostPageState extends ConsumerState<PublishPostPage> {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.coral,
                 disabledBackgroundColor: AppColors.linen,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.button)),
               ),
               onPressed: canPublish ? _publish : null,
               child: _publishing
@@ -243,13 +243,13 @@ class _PublishPostPageState extends ConsumerState<PublishPostPage> {
 
   Widget _pickButton(IconData icon, String label, ImageSource source) {
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(AppRadii.card),
       onTap: () => _pick(source),
       child: Container(
         height: 120,
         decoration: BoxDecoration(
           color: AppColors.paper,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           border: Border.all(color: AppColors.hairline),
         ),
         child: Column(
@@ -315,7 +315,7 @@ class _SelChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: selected ? AppColors.coral : AppColors.paper,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadii.chip),
           border: Border.all(color: selected ? AppColors.coral : AppColors.hairline),
         ),
         child: Text(label,

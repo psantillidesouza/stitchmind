@@ -71,6 +71,9 @@ class Lesson {
   final String? categorySlug;
   final DateTime? createdAt;
   final LessonProgress? progress;
+  // Vídeo da aula (nível lesson) com capítulos = passos com tempo.
+  final String? lessonVideoUrl;
+  final String? lessonVideoPoster;
 
   const Lesson({
     required this.id,
@@ -87,6 +90,8 @@ class Lesson {
     this.categorySlug,
     this.createdAt,
     this.progress,
+    this.lessonVideoUrl,
+    this.lessonVideoPoster,
   });
 
   factory Lesson.fromJson(Map<String, dynamic> j) => Lesson(
@@ -106,6 +111,11 @@ class Lesson {
         progress: j['progress'] == null
             ? null
             : LessonProgress.fromJson(j['progress'] as Map<String, dynamic>),
+        lessonVideoUrl:
+            (j['meta'] is Map) ? (j['meta']['video_url'] as String?) : null,
+        lessonVideoPoster: (j['meta'] is Map)
+            ? (j['meta']['video_poster_url'] as String?)
+            : null,
       );
 }
 
@@ -133,6 +143,37 @@ class LessonBlock {
   String get stepTitle => (content['title'] as String?) ?? '';
   String get stepInstruction => (content['instruction'] as String?) ?? '';
   String? get stepImageUrl => (content['image_url'] as String?) ?? url;
+  // Tempo do passo no vídeo da AULA (capítulo), em segundos.
+  int? get stepTime => (content['time'] as num?)?.toInt();
+  // Sub-passos numerados + dica + total (modelo rico do passo)
+  String get stepTip => (content['tip'] as String?) ?? '';
+  String get stepTotal => (content['total'] as String?) ?? '';
+
+  /// Sub-passos (mini-passos): cada um com [title], [description] e seu PRÓPRIO
+  /// vídeo ([videoUrl]/[videoPoster], resolvidos pelo backend). Tolerante a
+  /// formatos antigos {highlight, detail} e strings simples (legado).
+  List<({String title, String description, String videoUrl, String? videoPoster})>
+      get stepSubsteps {
+    final raw = (content['substeps'] as List?) ?? const [];
+    final out =
+        <({String title, String description, String videoUrl, String? videoPoster})>[];
+    for (final e in raw) {
+      if (e is Map) {
+        final t =
+            (e['title'] as String?)?.trim() ?? (e['highlight'] as String?)?.trim() ?? '';
+        final d =
+            (e['description'] as String?)?.trim() ?? (e['detail'] as String?)?.trim() ?? '';
+        final v = (e['video_url'] as String?)?.trim() ?? '';
+        final vp = (e['video_poster_url'] as String?)?.trim();
+        if (t.isNotEmpty || d.isNotEmpty || v.isNotEmpty) {
+          out.add((title: t, description: d, videoUrl: v, videoPoster: vp));
+        }
+      } else if (e is String && e.trim().isNotEmpty) {
+        out.add((title: e.trim(), description: '', videoUrl: '', videoPoster: null));
+      }
+    }
+    return out;
+  }
 
   factory LessonBlock.fromJson(Map<String, dynamic> j) => LessonBlock(
         id: (j['id'] ?? '').toString(),

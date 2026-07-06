@@ -87,10 +87,12 @@ app.route("/v1", v1);
 app.route("/", aiRoutes); // /analyze, /feedback continuam funcionando
 
 // ─── Páginas web (estáticas) ────────────────────────────────────────
-async function serveFile(path: string, type: string, c: any) {
+async function serveFile(path: string, type: string, c: any, cache?: string) {
   try {
     const content = await readFile(join(PUBLIC_DIR, path), "utf-8");
-    return c.body(content, 200, { "Content-Type": type });
+    const headers: Record<string, string> = { "Content-Type": type };
+    if (cache) headers["Cache-Control"] = cache;
+    return c.body(content, 200, headers);
   } catch {
     return c.text("not found", 404);
   }
@@ -227,9 +229,10 @@ app.get("/quiz-project", html("quiz-project.html"));   // próximo projeto · 5Q
 app.get("/quiz-gift", html("quiz-gift.html"));         // presente/relaxar · 3Q+depoimentos · rose
 
 // Painel admin
-app.get("/admin", html("admin/index.html"));
-app.get("/admin/app.js", (c) => serveFile("admin/app.js", "text/javascript", c));
-app.get("/admin/styles.css", (c) => serveFile("admin/styles.css", "text/css", c));
+// Painel admin: no-store pra a versão nova aparecer na hora (sem cache do CF/navegador).
+app.get("/admin", (c) => serveFile("admin/index.html", "text/html; charset=utf-8", c, "no-store"));
+app.get("/admin/app.js", (c) => serveFile("admin/app.js", "text/javascript", c, "no-store"));
+app.get("/admin/styles.css", (c) => serveFile("admin/styles.css", "text/css", c, "no-store"));
 // Config pública do Firebase web (apiKey é público; só funciona p/ contas válidas).
 app.get("/admin/firebase-config", (c) =>
   c.json({

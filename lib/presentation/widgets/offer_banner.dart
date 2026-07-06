@@ -112,13 +112,7 @@ class OfferBanner extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(
                                   badge ?? l10n.tr('home_offer_badge'),
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.8,
-                                    color: AppColors.paper,
-                                  ),
+                                  style: AppText.badge.copyWith(color: AppColors.paper),
                                 ),
                               ],
                             ),

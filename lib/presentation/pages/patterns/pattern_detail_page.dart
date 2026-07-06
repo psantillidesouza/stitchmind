@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/providers.dart';
+import '../../widgets/app_chips.dart';
 
 class PatternDetailPage extends ConsumerWidget {
   const PatternDetailPage({required this.patternId, super.key});
@@ -54,8 +55,8 @@ class PatternDetailPage extends ConsumerWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: pattern.technique == StitchTechnique.knit
-                            ? const [Color(0xFFD4A24A), Color(0xFFC75D3C)]
-                            : const [Color(0xFF7C9A6A), Color(0xFF445E3A)],
+                            ? const [AppColors.knitGradTop, AppColors.knitGradBottom]
+                            : const [AppColors.crochetGradTop, AppColors.crochetGradBottom],
                       ),
                     ),
                   ),
@@ -79,12 +80,12 @@ class PatternDetailPage extends ConsumerWidget {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _Pill(label: pattern.technique.labelPt),
-                        _Pill(label: pattern.difficulty.labelPt),
-                        _Pill(
+                        AppPill(label: pattern.technique.labelPt),
+                        AppPill(label: pattern.difficulty.labelPt),
+                        AppPill(
                           label: '${pattern.estimatedTime.inHours}h',
                         ),
-                        _Pill(
+                        AppPill(
                           label: '${pattern.totalRows} rows',
                         ),
                       ],
@@ -99,7 +100,7 @@ class PatternDetailPage extends ConsumerWidget {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: AppColors.paper,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppRadii.card),
                         border: Border.all(color: AppColors.linen),
                       ),
                       child: Column(
@@ -165,7 +166,7 @@ class _SectionTileState extends State<_SectionTile> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppColors.paper,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.linen),
       ),
       child: Column(
@@ -173,7 +174,7 @@ class _SectionTileState extends State<_SectionTile> {
         children: [
           InkWell(
             onTap: () => setState(() => _open = !_open),
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppRadii.card),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -272,30 +273,6 @@ class _RowLine extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label});
-  final String label;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.linen.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 12,
-          color: AppColors.walnut,
-          fontWeight: FontWeight.w500,
-        ),
       ),
     );
   }

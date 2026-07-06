@@ -1,4 +1,8 @@
+import 'dart:math';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'feature_flags.dart';
 
 /// Estado leve de aplicação consultado pelo router em tempo de redirect.
 /// Carregado uma vez no [main()] após o bootstrap do Hive.
@@ -9,6 +13,7 @@ class AppState {
   static const _preferredNameKey = 'preferred_name_v1';
   static const _reviewRequestedKey = 'review_requested_v1';
   static const _communityGuidelinesKey = 'community_guidelines_accepted_v1';
+  static const _paywallVariantKey = 'paywall_variant_v1';
 
   static bool onboardingSeen = false;
 
@@ -28,13 +33,36 @@ class AppState {
   /// Aplicado ao perfil do Firebase no primeiro login.
   static String? preferredName;
 
+  /// Variante de paywall sorteada para esta instalação: `'a'` (atual) ou `'b'`
+  /// (design "Pro"). Vazio até a 1ª resolução. Fixa por install e persistida —
+  /// ver [currentPaywallVariant].
+  static String paywallVariant = '';
+
   static Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     onboardingSeen = prefs.getBool(_onboardingKey) ?? false;
     reviewRequested = prefs.getBool(_reviewRequestedKey) ?? false;
     communityGuidelinesAccepted = prefs.getBool(_communityGuidelinesKey) ?? false;
+    paywallVariant = prefs.getString(_paywallVariantKey) ?? '';
     final name = prefs.getString(_preferredNameKey)?.trim();
     preferredName = (name != null && name.isNotEmpty) ? name : null;
+  }
+
+  /// Retorna a variante de paywall desta instalação, sorteando-a na primeira
+  /// vez. Síncrono (não bloqueia a UI): quando sorteia, persiste em background.
+  ///
+  /// - Com [kPaywallAbEnabled] `false`: sempre `'a'` e NÃO persiste, para que
+  ///   um futuro liga/desliga do teste ainda consiga sortear estas instalações.
+  /// - Com o teste ligado: sorteio 50/50 fixo, persistido em [_paywallVariantKey].
+  static String currentPaywallVariant() {
+    if (paywallVariant == 'a' || paywallVariant == 'b') return paywallVariant;
+    if (!kPaywallAbEnabled) return 'a'; // trava em A sem persistir
+    final assigned = Random().nextBool() ? 'b' : 'a';
+    paywallVariant = assigned;
+    // Persiste sem bloquear a construção da tela.
+    SharedPreferences.getInstance()
+        .then((p) => p.setString(_paywallVariantKey, assigned));
+    return assigned;
   }
 
   static Future<void> markReviewRequested() async {

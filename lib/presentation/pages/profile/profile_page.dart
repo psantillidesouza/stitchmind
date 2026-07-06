@@ -91,7 +91,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: AppColors.paper,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppRadii.card),
               border: Border.all(color: AppColors.linen),
             ),
             child: Row(
@@ -196,13 +196,7 @@ class _Section extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.4,
-          color: AppColors.terracottaDeep,
-        ),
+        style: AppText.eyebrow.copyWith(color: AppColors.terracottaDeep),
       ),
     );
   }

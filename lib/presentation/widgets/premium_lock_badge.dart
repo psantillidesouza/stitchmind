@@ -30,16 +30,13 @@ class PremiumLockBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.lock_rounded, size: compact ? 11 : 12, color: Colors.white),
+          Icon(Icons.lock_rounded, size: compact ? 11 : 12, color: AppColors.paper),
           const SizedBox(width: 4),
           Text(
             'Premium',
-            style: TextStyle(
-              fontFamily: 'Poppins',
+            style: AppText.badge.copyWith(
               fontSize: compact ? 10 : 11,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: 0.3,
+              color: AppColors.paper,
             ),
           ),
         ],

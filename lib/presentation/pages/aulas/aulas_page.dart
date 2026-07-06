@@ -63,13 +63,7 @@ class AulasPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(context.l10n.tr('aulas_eyebrow'),
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.4,
-                          color: AppColors.walnutMuted,
-                        )),
+                        style: AppText.eyebrow.copyWith(color: AppColors.walnutMuted)),
                     const SizedBox(height: 6),
                     Text(context.l10n.tr('aulas_tools'), style: Theme.of(context).textTheme.displayLarge),
                   ],
@@ -165,6 +159,17 @@ class AulasPage extends ConsumerWidget {
                   onTap: () => context.push('/patterns'),
                 ),
               ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _SmartTool(
+                  icon: Icons.auto_awesome_motion_rounded,
+                  iconBg: AppColors.coral,
+                  title: context.l10n.tr('aulas_stitches_title'),
+                  subtitle: context.l10n.tr('aulas_stitches_subtitle'),
+                  onTap: () => context.push('/stitches'),
+                ),
+              ),
 
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 12),
@@ -178,7 +183,7 @@ class AulasPage extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                        color: AppColors.card, borderRadius: BorderRadius.circular(20)),
+                        color: AppColors.card, borderRadius: BorderRadius.circular(AppRadii.card)),
                     child: Text(context.l10n.tr('aulas_empty'),
                         style: Theme.of(context).textTheme.bodyMedium),
                   ),
@@ -219,7 +224,7 @@ class _LessonRow extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           boxShadow: softShadow(0.05),
         ),
         child: Row(
@@ -251,9 +256,7 @@ class _LessonRow extends StatelessWidget {
                   children: [
                     if (lesson.courseTitle != null)
                       Text(lesson.courseTitle!.toUpperCase(),
-                          style: const TextStyle(
-                              fontFamily: 'Poppins', fontSize: 10, letterSpacing: 1,
-                              fontWeight: FontWeight.w700, color: AppColors.coral)),
+                          style: AppText.eyebrow.copyWith(color: AppColors.coral)),
                     const SizedBox(height: 4),
                     Text(lesson.title,
                         maxLines: 2, overflow: TextOverflow.ellipsis,
@@ -318,9 +321,7 @@ class _RecentLessonCard extends StatelessWidget {
             if (lesson.courseTitle != null)
               Text(lesson.courseTitle!.toUpperCase(),
                   maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontFamily: 'Poppins', fontSize: 10, letterSpacing: 1,
-                      fontWeight: FontWeight.w700, color: AppColors.coral)),
+                  style: AppText.eyebrow.copyWith(color: AppColors.coral)),
             const SizedBox(height: 2),
             Text(lesson.title,
                 maxLines: 2, overflow: TextOverflow.ellipsis,
@@ -353,9 +354,9 @@ class _SmartTool extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.card,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(AppRadii.card),
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         onTap: locked ? () => context.push('/paywall') : onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),

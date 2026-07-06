@@ -125,7 +125,7 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
                 color: active ? AppColors.coral : AppColors.paper,
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(AppRadii.chip),
                 border: Border.all(
                     color: active ? AppColors.coral : AppColors.hairline),
               ),
@@ -137,14 +137,14 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
                       padding: const EdgeInsets.only(right: 4),
                       child: Icon(Icons.bookmark_rounded,
                           size: 15,
-                          color: active ? Colors.white : AppColors.walnutSoft),
+                          color: active ? AppColors.paper : AppColors.walnutSoft),
                     ),
                   Text(f.label,
                       style: TextStyle(
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
-                          color: active ? Colors.white : AppColors.walnutSoft)),
+                          color: active ? AppColors.paper : AppColors.walnutSoft)),
                 ],
               ),
             ),
@@ -170,13 +170,13 @@ class _PublishButton extends StatelessWidget {
         child: const Padding(
           padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.add_a_photo_rounded, color: Colors.white, size: 18),
+            Icon(Icons.add_a_photo_rounded, color: AppColors.paper, size: 18),
             SizedBox(width: 6),
             Text('Share',
                 style: TextStyle(
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w700,
-                    color: Colors.white)),
+                    color: AppColors.paper)),
           ]),
         ),
       ),

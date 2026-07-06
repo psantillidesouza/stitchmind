@@ -64,7 +64,7 @@ class _FaqTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.hairline),
       ),
       clipBehavior: Clip.antiAlias,

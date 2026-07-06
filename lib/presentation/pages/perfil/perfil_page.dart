@@ -418,7 +418,7 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.hairline),
       ),
       child: Column(
@@ -447,11 +447,11 @@ class _SettingTile extends StatelessWidget {
       child: Material(
         color: AppColors.card,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           side: const BorderSide(color: AppColors.hairline),
         ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(16),

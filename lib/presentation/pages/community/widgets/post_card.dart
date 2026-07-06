@@ -19,7 +19,7 @@ class PostCard extends ConsumerWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.hairline),
         boxShadow: elevatedShadow(0.06),
       ),
@@ -305,13 +305,13 @@ class _TypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (Color bg, Color fg, IconData icon) = switch (type) {
-      'wip' => (const Color(0xFFFDF1DD), AppColors.ochre, Icons.timelapse_rounded),
+      'wip' => (AppColors.ochreSoft, AppColors.ochre, Icons.timelapse_rounded),
       'help' => (AppColors.coralSoft, AppColors.coralDeep, Icons.help_outline_rounded),
       _ => (AppColors.sageSoft, AppColors.sage, Icons.check_circle_outline_rounded),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppRadii.chip)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, size: 14, color: fg),
         const SizedBox(width: 4),
@@ -334,7 +334,7 @@ class _Chip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: AppColors.linenSoft,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.chip),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[

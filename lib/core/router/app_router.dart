@@ -22,6 +22,8 @@ import '../../presentation/pages/patterns/pattern_detail_page.dart';
 import '../../presentation/pages/patterns/patterns_page.dart';
 import '../../presentation/pages/paywall/paywall_page.dart';
 import '../../presentation/pages/perfil/perfil_page.dart';
+import '../../presentation/pages/stitches/stitch_detail_page.dart';
+import '../../presentation/pages/stitches/stitch_library_page.dart';
 import '../app_state.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
@@ -81,7 +83,7 @@ GoRouter createRouter({
         path: '/paywall',
         pageBuilder: (_, state) => const NoTransitionPage(
           name: 'paywall',
-          child: PaywallPage(),
+          child: PaywallGate(),
         ),
       ),
       GoRoute(
@@ -197,6 +199,20 @@ GoRouter createRouter({
           name: 'pattern_detail',
           child: PatternDetailPage(
               patternId: state.pathParameters['patternId']!),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootKey,
+        path: '/stitches',
+        pageBuilder: (_, state) =>
+            const MaterialPage(name: 'stitches', child: StitchLibraryPage()),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootKey,
+        path: '/stitches/:id',
+        pageBuilder: (_, state) => MaterialPage(
+          name: 'stitch_detail',
+          child: StitchDetailPage(stitchId: state.pathParameters['id']!),
         ),
       ),
       GoRoute(

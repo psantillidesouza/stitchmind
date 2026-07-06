@@ -71,7 +71,7 @@ final projectActionsProvider = Provider<ProjectActions>((ref) {
 // ─── Stitches ─────────────────────────────────────────────────────────────
 
 final stitchRepositoryProvider = Provider<StitchRepository>((ref) {
-  return AssetStitchRepository();
+  return ApiStitchRepository(ref.watch(apiClientProvider));
 });
 
 final stitchesProvider = FutureProvider<List<Stitch>>((ref) {

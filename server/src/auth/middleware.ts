@@ -9,6 +9,7 @@ export interface AppUser {
   email: string | null;
   name: string | null;
   role: "user" | "admin";
+  panel_role: "admin" | "editor" | null;
   status: "active" | "blocked";
   is_premium: boolean;
 }
@@ -23,7 +24,7 @@ async function resolveUser(c: Context): Promise<AppUser | null> {
   const adminClaims = await verifyAdminToken(token);
   if (adminClaims) {
     const rows = await sql<AppUser[]>`
-      SELECT id, firebase_uid, email, name, role, status, is_premium FROM users WHERE id = ${adminClaims.uid}`;
+      SELECT id, firebase_uid, email, name, role, panel_role, status, is_premium FROM users WHERE id = ${adminClaims.uid}`;
     if (rows[0] && rows[0].role === "admin") {
       await sql`UPDATE users SET last_seen_at = now() WHERE id = ${adminClaims.uid}`.catch(() => {});
       return rows[0];
@@ -38,32 +39,65 @@ async function resolveUser(c: Context): Promise<AppUser | null> {
     return null;
   }
 
-  // Re-vincula: se já existe uma conta com este e-mail mas outro firebase_uid
-  // (ex.: re-login com o mesmo Google após excluir a conta, ou troca de uid),
-  // aponta a linha existente para o uid atual. Sem isso, o INSERT abaixo violava
-  // a constraint única de e-mail (users_email_key) e o login dava 500.
-  if (verified.email) {
-    await sql`
-      UPDATE users SET firebase_uid = ${verified.uid}, updated_at = now()
-      WHERE email = ${verified.email} AND firebase_uid <> ${verified.uid}
-    `.catch(() => {});
-  }
+  // Upsert race-safe que respeita AS DUAS constraints únicas (firebase_uid E
+  // email). Antes, um `ON CONFLICT (firebase_uid)` com `email = EXCLUDED.email`
+  // ainda podia violar users_email_key (quando outra linha já tinha o e-mail) e
+  // derrubava o login com 500 — bloqueando login E assinatura do usuário. Aqui
+  // resolvemos a colisão de e-mail explicitamente, numa transação.
+  const email = verified.email ?? null;
+  const id = await sql.begin(async (tx) => {
+    // a) Já existe linha para este firebase_uid → atualiza.
+    const [byUid] = await tx<{ id: string }[]>`
+      SELECT id FROM users WHERE firebase_uid = ${verified.uid}`;
+    if (byUid) {
+      // Só grava o e-mail do token se NENHUMA outra linha já o tiver
+      // (senão mantém o atual e evita users_email_key).
+      await tx`
+        UPDATE users SET
+          email = CASE
+            WHEN ${email}::text IS NULL THEN users.email
+            WHEN EXISTS (SELECT 1 FROM users u2
+                          WHERE u2.email = ${email} AND u2.id <> users.id) THEN users.email
+            ELSE ${email}
+          END,
+          name = COALESCE(users.name, ${verified.name ?? null}),
+          photo_url = COALESCE(users.photo_url, ${verified.picture ?? null}),
+          email_verified = ${verified.emailVerified},
+          last_seen_at = now(),
+          updated_at = now()
+        WHERE id = ${byUid.id}`;
+      return byUid.id;
+    }
+    // b) Não há linha para o uid, mas existe uma com este e-mail (re-login com
+    //    outro método, ou troca de uid): re-vincula essa linha ao uid atual.
+    if (email) {
+      const [byEmail] = await tx<{ id: string }[]>`
+        SELECT id FROM users WHERE email = ${email}`;
+      if (byEmail) {
+        await tx`
+          UPDATE users SET
+            firebase_uid = ${verified.uid},
+            name = COALESCE(users.name, ${verified.name ?? null}),
+            photo_url = COALESCE(users.photo_url, ${verified.picture ?? null}),
+            email_verified = ${verified.emailVerified},
+            last_seen_at = now(),
+            updated_at = now()
+          WHERE id = ${byEmail.id}`;
+        return byEmail.id;
+      }
+    }
+    // c) Usuário novo.
+    const [created] = await tx<{ id: string }[]>`
+      INSERT INTO users (firebase_uid, email, name, photo_url, email_verified, last_seen_at)
+      VALUES (${verified.uid}, ${email}, ${verified.name ?? null},
+              ${verified.picture ?? null}, ${verified.emailVerified}, now())
+      RETURNING id`;
+    return created.id;
+  });
 
   const rows = await sql<AppUser[]>`
-    INSERT INTO users (firebase_uid, email, name, photo_url, email_verified, last_seen_at)
-    VALUES (${verified.uid}, ${verified.email ?? null}, ${verified.name ?? null},
-            ${verified.picture ?? null}, ${verified.emailVerified}, now())
-    ON CONFLICT (firebase_uid) DO UPDATE SET
-      email = COALESCE(EXCLUDED.email, users.email),
-      -- Nome e foto: a conta no app é a fonte da verdade. Uma vez definidos,
-      -- o token do Firebase não sobrescreve (evita reverter edições do usuário).
-      name = COALESCE(users.name, EXCLUDED.name),
-      photo_url = COALESCE(users.photo_url, EXCLUDED.photo_url),
-      email_verified = EXCLUDED.email_verified,
-      last_seen_at = now(),
-      updated_at = now()
-    RETURNING id, firebase_uid, email, name, role, status, is_premium
-  `;
+    SELECT id, firebase_uid, email, name, role, panel_role, status, is_premium
+    FROM users WHERE id = ${id}`;
   return rows[0] ?? null;
 }
 

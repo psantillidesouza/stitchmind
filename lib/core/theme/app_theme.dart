@@ -38,7 +38,7 @@ class AppTheme {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppRadii.card),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -54,7 +54,7 @@ class AppTheme {
           shadowColor: AppColors.coral.withValues(alpha: 0.45),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(AppRadii.button),
           ),
           textStyle: const TextStyle(
             fontFamily: 'Poppins',
@@ -70,7 +70,7 @@ class AppTheme {
           side: const BorderSide(color: AppColors.linen),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadii.field),
           ),
         ),
       ),
@@ -91,7 +91,7 @@ class AppTheme {
         ),
         side: BorderSide.none,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadii.chip),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
@@ -131,7 +131,7 @@ class AppTheme {
 
   static TextTheme _textTheme(Color primary, Color secondary) {
     return TextTheme(
-      // ── Display & headlines: Fraunces (serif editorial) ──────────────
+      // ── Display & headlines: Poppins (peso 600, tracking negativo) ───
       displayLarge: TextStyle(
         fontFamily: 'Poppins',
         fontSize: 40,

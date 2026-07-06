@@ -62,6 +62,8 @@ class Stitch {
   final List<String> categories;
   final String description;
   final List<String> steps;
+  final String? videoUrl;
+  final String? videoPoster;
 
   const Stitch({
     required this.id,
@@ -73,6 +75,8 @@ class Stitch {
     required this.categories,
     required this.description,
     this.steps = const [],
+    this.videoUrl,
+    this.videoPoster,
   });
 
   factory Stitch.fromJson(Map<String, dynamic> json) {
@@ -87,6 +91,8 @@ class Stitch {
       categories: (json['categories'] as List).cast<String>(),
       description: json['description'] as String,
       steps: ((json['steps'] as List?) ?? const []).cast<String>(),
+      videoUrl: json['video_url'] as String?,
+      videoPoster: json['video_poster_url'] as String?,
     );
   }
 }

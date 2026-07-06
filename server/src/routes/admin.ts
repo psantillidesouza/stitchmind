@@ -3,7 +3,7 @@ import { z } from "zod";
 import { sql } from "../db.ts";
 import { requireAdmin, type AppUser } from "../auth/middleware.ts";
 import { BUCKETS, putObject, mediaUrl, type AssetKind } from "../storage.ts";
-import { imageToWebp, videoToMp4 } from "../media.ts";
+import { imageToWebp, videoToMp4, videoMeta } from "../media.ts";
 import { sendToTokens, isPushConfigured } from "../push/fcm.ts";
 import {
   computeNextRun,
@@ -13,6 +13,105 @@ import {
 
 export const adminRoutes = new Hono();
 adminRoutes.use("*", requireAdmin);
+
+// ─── Papel no painel: editor só acessa conteúdo ─────────────────────
+// Áreas sensíveis (métricas, pessoas, push, equipe) ficam só para admin.
+const ADMIN_ONLY = [
+  "/overview", "/users", "/sessions", "/analytics", "/crashes",
+  "/notifications", "/retention", "/team",
+];
+adminRoutes.use("*", async (c, next) => {
+  const u = c.get("user") as AppUser;
+  if (u.panel_role === "editor") {
+    const sub = (c.req.path.split("/admin")[1] || "");
+    if (ADMIN_ONLY.some((p) => sub === p || sub.startsWith(p + "/"))) {
+      return c.json({ error: "Acesso restrito a administradores." }, 403);
+    }
+  }
+  await next();
+});
+
+// ─── Quem sou eu (papel no painel) — qualquer usuário do painel ─────
+adminRoutes.get("/me", async (c) => {
+  const u = c.get("user") as AppUser;
+  return c.json({ id: u.id, email: u.email, name: u.name, panel_role: u.panel_role ?? "admin" });
+});
+
+// ─── Equipe: usuários que acessam SÓ o painel (só admin gerencia) ───
+adminRoutes.get("/team", async (c) => {
+  const rows = await sql`
+    SELECT id, email, name, COALESCE(panel_role, 'admin') AS panel_role,
+           created_at, last_seen_at
+    FROM users WHERE role = 'admin' ORDER BY created_at`;
+  return c.json({ team: rows });
+});
+
+const TeamCreate = z.object({
+  email: z.string().email(),
+  name: z.string().trim().max(60).optional(),
+  password: z.string().min(8, "Senha de no mínimo 8 caracteres."),
+  panel_role: z.enum(["admin", "editor"]).default("editor"),
+});
+adminRoutes.post("/team", async (c) => {
+  const parsed = TeamCreate.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos." }, 400);
+  }
+  const { email, name, password, panel_role } = parsed.data;
+  const hash = await Bun.password.hash(password);
+  const [existing] = await sql`SELECT id FROM users WHERE lower(email) = lower(${email})`;
+  let row;
+  if (existing) {
+    [row] = await sql`
+      UPDATE users SET role = 'admin', panel_role = ${panel_role},
+        password_hash = ${hash}, name = COALESCE(${name ?? null}, name), updated_at = now()
+      WHERE id = ${existing.id}
+      RETURNING id, email, name, panel_role`;
+  } else {
+    [row] = await sql`
+      INSERT INTO users (email, name, role, panel_role, password_hash, email_verified)
+      VALUES (${email}, ${name ?? null}, 'admin', ${panel_role}, ${hash}, true)
+      RETURNING id, email, name, panel_role`;
+  }
+  return c.json({ user: row });
+});
+
+const TeamUpdate = z.object({
+  panel_role: z.enum(["admin", "editor"]).optional(),
+  password: z.string().min(8, "Senha de no mínimo 8 caracteres.").optional(),
+});
+adminRoutes.patch("/team/:id", async (c) => {
+  const id = c.req.param("id");
+  const parsed = TeamUpdate.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos." }, 400);
+  }
+  const hash = parsed.data.password ? await Bun.password.hash(parsed.data.password) : null;
+  const [row] = await sql`
+    UPDATE users SET
+      panel_role = COALESCE(${parsed.data.panel_role ?? null}, panel_role),
+      password_hash = COALESCE(${hash}, password_hash),
+      updated_at = now()
+    WHERE id = ${id} AND role = 'admin'
+    RETURNING id, email, name, panel_role`;
+  if (!row) return c.json({ error: "Não encontrado." }, 404);
+  return c.json({ user: row });
+});
+
+// Remove o ACESSO ao painel (rebaixa para usuário comum; preserva dados).
+adminRoutes.delete("/team/:id", async (c) => {
+  const id = c.req.param("id");
+  const me = c.get("user") as AppUser;
+  if (id === me.id) return c.json({ error: "Você não pode remover a si mesmo." }, 400);
+  const [{ n }] = await sql`
+    SELECT count(*)::int AS n FROM users
+    WHERE role = 'admin' AND COALESCE(panel_role, 'admin') = 'admin' AND id <> ${id}`;
+  if (n === 0) return c.json({ error: "Precisa existir ao menos um administrador." }, 400);
+  await sql`
+    UPDATE users SET role = 'user', panel_role = NULL, password_hash = NULL, updated_at = now()
+    WHERE id = ${id} AND role = 'admin'`;
+  return c.json({ ok: true });
+});
 
 function slugify(s: string): string {
   return s
@@ -556,25 +655,39 @@ const StitchSchema = z.object({
 
 const FullStepSchema = z.object({
   title: z.string().optional(),
-  goal: z.string().optional(),
-  visual_description: z.string().optional(),
-  stitches_used: z.string().optional(),
-  pattern_used: z.string().optional(),
-  expected_result: z.string().optional(),
   instruction: z.string().optional(),
+  tip: z.string().optional(),
+  time: z.number().nullable().optional(),
+  substeps: z
+    .array(z.object({
+      title: z.string().optional(),
+      description: z.string().optional(),
+      // Cada mini-passo tem seu próprio vídeo (substituiu o vídeo do passo).
+      video_url: z.string().optional(),
+      video_asset_id: z.string().uuid().nullable().optional(),
+    }))
+    .optional(),
+  total: z.string().optional(),
+  stitches_used: z.string().optional(),
   image_url: z.string().optional(),
   image_asset_id: z.string().uuid().nullable().optional(),
 });
 
 const LessonMetaSchema = z.object({
   product_name: z.string().optional(),
+  materials: z.array(z.string()).optional(),
+  yarn: z.string().optional(),
+  main_color: z.string().optional(),
+  crochet_hook: z.string().optional(),
+  video_url: z.string().optional(),
+  video_asset_id: z.string().uuid().nullable().optional(),
+  stitches: z.array(StitchSchema).optional(),
+  // chaves legadas (aulas antigas) — aceitas mas não usadas no painel novo
   overview: z.string().optional(),
   difficulty_label: z.string().optional(),
   finished_size: z.string().optional(),
-  materials: z.array(z.string()).optional(),
   color_sequence: z.string().optional(),
   construction_method: z.string().optional(),
-  stitches: z.array(StitchSchema).optional(),
   pattern_analysis: z.string().optional(),
   confidence_note: z.string().optional(),
 });
@@ -623,13 +736,12 @@ adminRoutes.post("/lessons/full", async (c) => {
       const content = {
         number: i + 1,
         title: s.title ?? null,
-        goal: s.goal ?? null,
-        visual_description: s.visual_description ?? null,
+        instruction: s.instruction ?? null,
+        tip: s.tip ?? null,
+        time: s.time ?? null,
+        substeps: s.substeps ?? [],
+        total: s.total ?? null,
         stitches_used: s.stitches_used ?? null,
-        pattern_used: s.pattern_used ?? null,
-        expected_result: s.expected_result ?? null,
-        // instrução de exibição: mantém compatibilidade com o renderizador atual
-        instruction: s.instruction ?? [s.goal, s.pattern_used].filter(Boolean).join(" "),
         image_url: s.image_url ?? null,
       };
       await tx`
@@ -745,11 +857,33 @@ adminRoutes.post("/assets", async (c) => {
   const key = `${crypto.randomUUID()}.${result.ext}`;
   await putObject(bucket, key, result.bytes, result.mime);
 
+  // Vídeo: gera poster (asset de imagem separado) + duração.
+  let durationS: number | null = null;
+  let posterAssetId: string | null = null;
+  if (kind === "video") {
+    const meta = await videoMeta(result.bytes);
+    durationS = meta.durationS;
+    if (meta.posterWebp) {
+      const pKey = `${crypto.randomUUID()}.webp`;
+      await putObject(BUCKETS.image, pKey, meta.posterWebp, "image/webp");
+      const [p] = await sql`
+        INSERT INTO assets (kind, filename, mime, size_bytes, bucket, storage_key, uploaded_by)
+        VALUES ('image', ${`poster-${file.name}.webp`}, 'image/webp',
+                ${meta.posterWebp.byteLength}, ${BUCKETS.image}, ${pKey}, ${user.id})
+        RETURNING id`;
+      posterAssetId = p.id as string;
+    }
+  }
+
   const [row] = await sql`
-    INSERT INTO assets (kind, filename, mime, size_bytes, bucket, storage_key, uploaded_by)
-    VALUES (${kind}, ${file.name}, ${result.mime}, ${result.bytes.byteLength}, ${bucket}, ${key}, ${user.id})
-    RETURNING id, kind, filename, mime, size_bytes`;
-  return c.json({ asset: row });
+    INSERT INTO assets (kind, filename, mime, size_bytes, bucket, storage_key,
+                        duration_s, poster_asset_id, uploaded_by)
+    VALUES (${kind}, ${file.name}, ${result.mime}, ${result.bytes.byteLength},
+            ${bucket}, ${key}, ${durationS}, ${posterAssetId}, ${user.id})
+    RETURNING id, kind, filename, mime, size_bytes, duration_s, poster_asset_id`;
+  return c.json({
+    asset: { ...row, poster_url: posterAssetId ? mediaUrl(posterAssetId) : null },
+  });
 });
 
 adminRoutes.get("/lessons/:id/metrics", async (c) => {
@@ -987,6 +1121,68 @@ adminRoutes.post("/patterns", async (c) => {
 
 adminRoutes.delete("/patterns/:id", async (c) => {
   await sql`DELETE FROM patterns WHERE id = ${c.req.param("id")}`;
+  return c.json({ ok: true });
+});
+
+// ─── Pontos (stitches) — gestão no painel ───────────────────────────
+const StitchUpsertSchema = z.object({
+  id: z.string().min(1),
+  name_pt: z.string().min(1),
+  name_en: z.string().optional(),
+  abbrev: z.string().optional(),
+  technique: z.enum(["crochet", "knit"]),
+  difficulty: z.enum(["beginner", "intermediate", "advanced"]),
+  categories: z.array(z.string()).optional(),
+  description: z.string().optional(),
+  steps: z.array(z.string()).optional(),
+  video_asset_id: z.string().uuid().nullable().optional(),
+  order_index: z.number().int().optional(),
+});
+
+adminRoutes.get("/stitches", async (c) => {
+  const rows = await sql`
+    SELECT id, name_pt, name_en, abbrev, technique, difficulty, categories,
+           description, steps, video_asset_id, order_index
+    FROM stitches ORDER BY order_index, id`;
+  return c.json({
+    stitches: rows.map((r) => ({
+      ...r,
+      video_url: r.video_asset_id ? mediaUrl(r.video_asset_id) : null,
+    })),
+  });
+});
+
+adminRoutes.get("/stitches/:id", async (c) => {
+  const [row] = await sql`SELECT * FROM stitches WHERE id = ${c.req.param("id")}`;
+  if (!row) return c.json({ error: "Ponto não encontrado." }, 404);
+  return c.json({
+    stitch: { ...row, video_url: row.video_asset_id ? mediaUrl(row.video_asset_id) : null },
+  });
+});
+
+adminRoutes.post("/stitches", async (c) => {
+  const parsed = StitchUpsertSchema.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400);
+  const d = parsed.data;
+  const [row] = await sql`
+    INSERT INTO stitches (id, name_pt, name_en, abbrev, technique, difficulty,
+                          categories, description, steps, video_asset_id, order_index)
+    VALUES (${d.id}, ${d.name_pt}, ${d.name_en ?? ""}, ${d.abbrev ?? ""},
+            ${d.technique}, ${d.difficulty}, ${sql.json(d.categories ?? [])},
+            ${d.description ?? ""}, ${sql.json(d.steps ?? [])},
+            ${d.video_asset_id ?? null}, ${d.order_index ?? 0})
+    ON CONFLICT (id) DO UPDATE SET
+      name_pt = EXCLUDED.name_pt, name_en = EXCLUDED.name_en, abbrev = EXCLUDED.abbrev,
+      technique = EXCLUDED.technique, difficulty = EXCLUDED.difficulty,
+      categories = EXCLUDED.categories, description = EXCLUDED.description,
+      steps = EXCLUDED.steps, video_asset_id = EXCLUDED.video_asset_id,
+      order_index = EXCLUDED.order_index, updated_at = now()
+    RETURNING *`;
+  return c.json({ stitch: row });
+});
+
+adminRoutes.delete("/stitches/:id", async (c) => {
+  await sql`DELETE FROM stitches WHERE id = ${c.req.param("id")}`;
   return c.json({ ok: true });
 });
 

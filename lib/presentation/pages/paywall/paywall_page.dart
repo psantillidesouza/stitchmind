@@ -13,18 +13,38 @@ import '../../../domain/entities/lesson.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../providers/platform_providers.dart';
 import '../../widgets/stitch_mind_logo.dart';
+import 'paywall_b_page.dart';
 
-const _bg = Color(0xFF0E0B0A); // fundo escuro da paywall
-const _card = Color(0xFF1C1714);
-const _cardLine = Color(0xFF332A25);
+const _bg = AppColors.paywallBg; // fundo escuro da paywall
+const _card = AppColors.paywallCard;
+const _cardLine = AppColors.paywallCardLine;
 
 const _termsUrl = 'https://stitchmindapp.com/termos';
 const _privacyUrl = 'https://stitchmindapp.com/privacidade';
 
 /// Paywall premium — estilo dark com colagem de projetos. Exibida após o
 /// onboarding e a cada abertura do app enquanto o usuário não for assinante.
+/// Porta de entrada do paywall: resolve a variante A/B (sorteio 50/50 fixo por
+/// instalação — ver [AppState.currentPaywallVariant]) e mostra a tela certa.
+/// TODOS os CTAs de premium apontam para a rota `/paywall`, que renderiza isto.
+class PaywallGate extends StatelessWidget {
+  const PaywallGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final variant = AppState.currentPaywallVariant();
+    return variant == 'b'
+        ? const PaywallProPage(variant: 'b')
+        : const PaywallPage(variant: 'a');
+  }
+}
+
 class PaywallPage extends ConsumerStatefulWidget {
-  const PaywallPage({super.key});
+  const PaywallPage({this.variant = 'a', super.key});
+
+  /// Variante A/B em exibição — apenas para rotulagem no analytics
+  /// (`paywall_variant`). O layout desta classe é a variante A.
+  final String variant;
 
   @override
   ConsumerState<PaywallPage> createState() => _PaywallPageState();
@@ -49,7 +69,7 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
   void initState() {
     super.initState();
     AppState.paywallShownThisLaunch = true;
-    ref.read(analyticsServiceProvider).logPaywallView();
+    ref.read(analyticsServiceProvider).logPaywallView(variant: widget.variant);
     _load();
   }
 
@@ -137,12 +157,12 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final analytics = ref.read(analyticsServiceProvider);
-    analytics.logPaywallPurchaseTap(pkg.identifier);
+    analytics.logPaywallPurchaseTap(pkg.identifier, variant: widget.variant);
     try {
       final ok = await ref.read(subscriptionServiceProvider).purchase(pkg);
       if (ok && mounted) {
         analytics.logPurchaseSuccess(pkg.identifier,
-            value: pkg.price, currency: pkg.currencyCode);
+            value: pkg.price, currency: pkg.currencyCode, variant: widget.variant);
         await _celebrate();
       }
     } catch (_) {
@@ -647,12 +667,7 @@ class _RibbonBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(text,
-          style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 9.5,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: 0.4)),
+          style: AppText.badge.copyWith(fontSize: 9.5, color: Colors.white)),
     );
   }
 }

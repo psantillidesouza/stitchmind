@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/entities.dart';
 import '../../providers/providers.dart';
+import '../../widgets/app_chips.dart';
+import '../../widgets/lesson_video.dart';
 
 class StitchDetailPage extends ConsumerWidget {
   const StitchDetailPage({required this.stitchId, super.key});
@@ -46,61 +48,67 @@ class StitchDetailPage extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
               children: [
-                Container(
-                  height: 240,
-                  decoration: BoxDecoration(
-                    color: AppColors.linen.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        stitch.abbrev,
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 64,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.walnut,
-                          height: 1,
+                if (stitch.videoUrl != null && stitch.videoUrl!.isNotEmpty)
+                  LessonVideo(
+                    url: stitch.videoUrl!,
+                    posterUrl: stitch.videoPoster,
+                  )
+                else
+                  Container(
+                    height: 240,
+                    decoration: BoxDecoration(
+                      color: AppColors.linen.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          stitch.abbrev,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 64,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.walnut,
+                            height: 1,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.paper,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.play_circle_outline,
-                              size: 14,
-                              color: AppColors.walnutSoft,
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'vídeo em breve',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 11,
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.paper,
+                            borderRadius: BorderRadius.circular(AppRadii.chip),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.play_circle_outline,
+                                size: 14,
                                 color: AppColors.walnutSoft,
-                                letterSpacing: 0.4,
                               ),
-                            ),
-                          ],
+                              SizedBox(width: 6),
+                              Text(
+                                'vídeo em breve',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 11,
+                                  color: AppColors.walnutSoft,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
                 const SizedBox(height: 24),
                 Text(
                   stitch.namePt,
@@ -116,9 +124,9 @@ class StitchDetailPage extends ConsumerWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _Pill(label: stitch.technique.labelPt),
-                    _Pill(label: stitch.difficulty.labelPt),
-                    ...stitch.categories.map((c) => _Pill(label: c)),
+                    AppPill(label: stitch.technique.labelPt),
+                    AppPill(label: stitch.difficulty.labelPt),
+                    ...stitch.categories.map((c) => AppPill(label: c)),
                   ],
                 ),
                 const SizedBox(height: 28),
@@ -146,30 +154,6 @@ class StitchDetailPage extends ConsumerWidget {
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label});
-  final String label;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.linen.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 12,
-          color: AppColors.walnut,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-}
-
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
   final String text;
@@ -177,13 +161,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(
-        fontFamily: 'Poppins',
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 1.4,
-        color: AppColors.terracottaDeep,
-      ),
+      style: AppText.eyebrow.copyWith(color: AppColors.terracottaDeep),
     );
   }
 }

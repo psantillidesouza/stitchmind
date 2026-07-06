@@ -934,12 +934,7 @@ class _Plan extends StatelessWidget {
           const SizedBox(height: 22),
           Text(l.tr('onb_plan_eyebrow'),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.4,
-                  color: AppColors.coral)),
+              style: AppText.eyebrow.copyWith(color: AppColors.coral)),
           const SizedBox(height: 8),
           Text(title,
               textAlign: TextAlign.center,

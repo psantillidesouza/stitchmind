@@ -112,12 +112,12 @@ class _ContinueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = (lesson.progress?.progressPct ?? 0) / 100;
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadii.card),
       onTap: () => context.push('/lessons/${lesson.slug}'),
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -127,13 +127,8 @@ class _ContinueCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('CONTINUAR DE ONDE PAROU',
-                style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.4,
-                    color: AppColors.ochre)),
+            Text('CONTINUAR DE ONDE PAROU',
+                style: AppText.eyebrow.copyWith(color: AppColors.ochre)),
             const SizedBox(height: 8),
             Text(lesson.title,
                 style: Theme.of(context)
@@ -166,7 +161,7 @@ class _LessonCard extends StatelessWidget {
     final done = lesson.progress?.completed ?? false;
     return Card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         onTap: () => context.push('/lessons/${lesson.slug}'),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -225,7 +220,7 @@ class _EmptyCard extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.paper,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.linen),
       ),
       child: Column(
@@ -251,7 +246,7 @@ class _ErrorCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.terracotta.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.terracotta.withValues(alpha: 0.3)),
       ),
       child: Column(

@@ -194,15 +194,9 @@ class _CounterPageState extends ConsumerState<CounterPage>
                   row: project.currentRow,
                 ),
               const Spacer(),
-              const Text(
+              Text(
                 'CARREIRA ATUAL',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 2,
-                  color: AppColors.walnutMuted,
-                ),
+                style: AppText.eyebrow.copyWith(color: AppColors.walnutMuted),
               ),
               const SizedBox(height: 24),
               AnimatedBuilder(
@@ -344,13 +338,7 @@ class _PatternHint extends ConsumerWidget {
             children: [
               Text(
                 instr.$1.toUpperCase(),
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
-                  color: AppColors.terracottaDeep,
-                ),
+                style: AppText.eyebrow.copyWith(color: AppColors.terracottaDeep),
               ),
               const SizedBox(height: 6),
               Text(

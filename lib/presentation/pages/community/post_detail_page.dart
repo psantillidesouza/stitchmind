@@ -173,8 +173,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                              strokeWidth: 2, color: AppColors.paper))
+                      : const Icon(Icons.send_rounded, color: AppColors.paper, size: 20),
                 ),
               ),
             ),

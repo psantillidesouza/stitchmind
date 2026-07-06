@@ -206,11 +206,11 @@ class _AnalyzeBanner extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
       child: InkWell(
         onTap: () => context.push('/analyze'),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadii.card),
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -238,15 +238,9 @@ class _AnalyzeBanner extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'ANÁLISE POR IA',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.4,
-                        color: AppColors.ochre,
-                      ),
+                      style: AppText.eyebrow.copyWith(color: AppColors.ochre),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -280,7 +274,7 @@ class _ActiveProjectCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         onTap: () => context.push('/projects/${project.id}'),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -356,7 +350,7 @@ class _EmptyInline extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.paper,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
         border: Border.all(color: AppColors.linen),
       ),
       child: Row(
@@ -394,20 +388,14 @@ class _TipCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.linen.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Tensão do fio',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
-              color: AppColors.terracottaDeep,
-            ),
+            style: AppText.eyebrow.copyWith(color: AppColors.terracottaDeep),
           ),
           const SizedBox(height: 8),
           Text(
