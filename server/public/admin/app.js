@@ -663,7 +663,9 @@ views.lessons = async () => {
       `<tr><td>${esc(l.title)}</td><td>${esc(l.course_title || "—")}</td><td>${esc(l.category || "—")}</td><td>${l.block_count} blocos</td><td>${l.views} views</td>
         <td>${l.status === "published" ? '<span class="badge ok">publicada</span>' : '<span class="badge draft">rascunho</span>'}</td>
         <td><button class="btn ghost sm" onclick="editFull('${l.id}')">editar</button>
-            <button class="btn ghost sm" onclick="editBlocks('${l.id}','${esc(l.title)}')">blocos</button>
+            <button class="btn ghost sm" onclick="editBlocks('${l.id}','${esc(l.title)}')">guia</button>
+            <button class="btn ghost sm" onclick="editVideos('${l.id}','${esc(l.title)}')">vídeos</button>
+            <button class="btn ghost sm" onclick="viewFeedback('${l.id}','${esc(l.title)}')">feedback</button>
             <button class="btn ghost sm" onclick="togglePub('lesson','${l.id}','${l.status === "published" ? "draft" : "published"}')">${l.status === "published" ? "despublicar" : "publicar"}</button>
             <button class="btn danger sm" onclick="delItem('lessons','${l.id}')">×</button></td></tr>`).join("") ||
     `<tr><td colspan=7 class="empty">nenhuma aula</td></tr>`
@@ -791,35 +793,20 @@ function addSubstepRow(wrap, data = {}) {
   row.className = "substep-row";
   row.style.cssText =
     "border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px";
+  // Guia é só texto/imagem: vídeo não pode ser enviado aqui. Dados de vídeo
+  // já existentes ficam preservados no dataset pra não sumirem ao salvar.
   if (data.video_asset_id) row.dataset.videoAssetId = data.video_asset_id;
+  if (data.video_url) row.dataset.videoUrl = data.video_url;
   row.innerHTML =
     `<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px">` +
     `<strong class="ss-n" style="font-size:12px;color:var(--muted)">Mini-passo ${n}</strong>` +
     `<button class="btn danger sm" type="button" title="remover">remover</button></div>` +
     `<input class="field ss-st" placeholder="Título (ex.: 2 correntes)" value="${esc(data.title)}" />` +
-    `<textarea class="field ss-sd" placeholder="Descrição (ex.: não contam como ponto)" style="margin-top:6px">${esc(data.description)}</textarea>` +
-    `<label class="lbl" style="margin-top:6px">Vídeo do mini-passo (cole uma URL ou envie um arquivo)</label>` +
-    `<input class="field ss-vurl" placeholder="https://… (opcional)" value="${esc(data.video_url)}" />` +
-    `<input type="file" class="ss-vfile" accept="video/*" style="font-size:11px;margin-top:6px" />` +
-    `<span class="ss-vst sub" style="font-size:10px;margin-left:8px">${data.video_asset_id ? "🎬 vídeo anexado ✓" : ""}</span>`;
+    `<textarea class="field ss-sd" placeholder="Descrição (ex.: não contam como ponto)" style="margin-top:6px">${esc(data.description)}</textarea>`;
   row.querySelector("button").onclick = () => {
     const w = row.parentElement;
     row.remove();
     renumberSubsteps(w);
-  };
-  row.querySelector(".ss-vfile").onchange = async (ev) => {
-    const f = ev.target.files[0];
-    if (!f) return;
-    const st = row.querySelector(".ss-vst");
-    st.textContent = "enviando vídeo… (pode demorar)";
-    try {
-      const asset = await uploadAsset(f);
-      row.dataset.videoAssetId = asset.id;
-      row.querySelector(".ss-vurl").value = "";
-      st.textContent = "🎬 vídeo do mini-passo enviado ✓";
-    } catch (e) {
-      st.textContent = "erro: " + e.message;
-    }
   };
   wrap.appendChild(row);
 }
@@ -838,7 +825,7 @@ function collectSubsteps(card) {
     .map((r) => ({
       title: r.querySelector(".ss-st").value.trim(),
       description: r.querySelector(".ss-sd").value.trim(),
-      video_url: r.querySelector(".ss-vurl").value.trim() || undefined,
+      video_url: r.dataset.videoUrl || undefined,
       video_asset_id: r.dataset.videoAssetId || undefined,
     }))
     .filter((s) => s.title || s.description || s.video_url || s.video_asset_id);
@@ -855,6 +842,7 @@ window.newFullLesson = (courses) => {
     <div class="sub" style="margin-bottom:14px">Preencha os metadados e os passos. Materiais e pontos: um por linha.</div>
 
     <label class="lbl">Título / Nome do produto *</label><input class="field" id="f-title" placeholder="Manta Listrada Texturizada Arco-Íris Pastel" />
+    <label class="lbl">Descrição (aparece no topo da aula no app)</label><textarea class="field" id="f-desc" placeholder="ex.: Uma bolsa de praia em granny square com alças de bambu…"></textarea>
     <div class="row" style="gap:12px">
       <div style="flex:1"><label class="lbl">Técnica</label><select class="field" id="f-tech"><option value="crochet">Crochê</option><option value="knit">Tricô</option></select></div>
       <div style="flex:1"><label class="lbl">Dificuldade</label><select class="field" id="f-dif"><option value="beginner">Iniciante</option><option value="intermediate">Intermediário</option><option value="advanced">Avançado</option></select></div>
@@ -866,7 +854,7 @@ window.newFullLesson = (courses) => {
     </div>
     <label class="lbl">Capa (cole uma URL ou envie um arquivo)</label><input class="field" id="f-cover" placeholder="https://…" />
     <input type="file" id="f-cover-file" accept="image/*" style="font-size:11px;margin-top:6px" /><span id="f-cover-st" class="sub" style="font-size:10px;margin-left:8px"></span>
-    <label class="lbl">Vídeo da aula (capítulos = passos com tempo)</label><input class="field" id="f-lvideo" placeholder="cole uma URL ou envie um arquivo" />
+    <label class="lbl">Vídeo da aula (aba "Vídeo" no app; capítulos = passos com tempo)</label><input class="field" id="f-lvideo" placeholder="cole uma URL ou envie um arquivo" />
     <input type="file" id="f-lvideo-file" accept="video/*" style="font-size:11px;margin-top:6px" /><span id="f-lvideo-st" class="sub" style="font-size:10px;margin-left:8px"></span>
     <label class="lbl">Fio</label><input class="field" id="f-yarn" placeholder="ex.: Fio worsted #4 (acrílico)" />
     <label class="lbl">Cor principal</label><input class="field" id="f-color" placeholder="ex.: Rosa pastel" />
@@ -874,9 +862,20 @@ window.newFullLesson = (courses) => {
     <label class="lbl">Materiais (um por linha)</label><textarea class="field" id="f-materials" placeholder="Fio worsted #4&#10;Agulha 5,0 mm&#10;Tesoura"></textarea>
     <label class="lbl">Pontos usados (um por linha: nome | confiança)</label><textarea class="field" id="f-stitches" placeholder="Ponto baixo | Alta&#10;Ponto alto | Alta"></textarea>
 
-    <div class="row" style="margin-top:18px"><h2 style="margin:0;font-size:15px">Passos</h2><div class="spacer"></div>
-      <button class="btn ghost sm" type="button" id="f-add-step">+ passo</button></div>
+    <div class="row" style="margin-top:18px"><h2 style="margin:0;font-size:15px">Guia</h2><div class="spacer"></div>
+      <button class="btn ghost sm" type="button" id="f-add-step">+ passo do guia</button></div>
+    <div class="sub" style="margin-top:4px;font-size:11px">O guia é o passo a passo em texto e imagens — não aceita vídeo. Os vídeos da aula ficam na seção Vídeos abaixo.</div>
     <div id="f-steps"></div>
+
+    <div class="row" style="margin-top:22px"><h2 style="margin:0;font-size:15px">Vídeos</h2></div>
+    <div class="sub" style="margin-top:4px;font-size:11px">Vários vídeos por aula, ordenados com ▲▼. O título curto (máx. 15 caracteres) vira a aba na tela de vídeo do app.</div>
+    <div id="f-videos"></div>
+    <div class="row" style="margin-top:10px;gap:8px;align-items:center">
+      <input class="field" id="fv-title" maxlength="15" placeholder="Título (máx. 15)" style="flex:1;margin:0" />
+      <input type="file" id="fv-file" accept="video/*" style="font-size:11px;flex:1" />
+      <button class="btn ghost sm" type="button" id="fv-add">+ vídeo</button>
+    </div>
+    <span id="fv-status" class="sub" style="font-size:10px"></span>
 
     <label class="lbl" style="margin-top:12px"><input type="checkbox" id="f-pub" checked style="width:auto"> Publicar imediatamente</label>
     <label class="lbl"><input type="checkbox" id="f-premium" style="width:auto">${icon('lock')} Premium (só assinantes)</label>
@@ -898,7 +897,7 @@ window.newFullLesson = (courses) => {
         <button class="btn danger sm" type="button" onclick="this.closest('.step-card').remove();window._renumSteps&&window._renumSteps()">remover</button></div>
       <label class="lbl">Título</label><input class="field s-title" value="${esc(data.title)}" />
       <label class="lbl">Tempo no vídeo da aula (mm:ss, opcional — vira capítulo)</label><input class="field s-time" value="${esc(fmtTime(data.time))}" placeholder="ex.: 2:40" />
-      <label class="lbl">Sub-passos (mini-passos: título + descrição + vídeo próprio)</label>
+      <label class="lbl">Sub-passos (mini-passos: título + descrição)</label>
       <div class="substeps-wrap"></div>
       <button class="btn ghost sm" type="button" data-act="add-substep" style="margin-top:6px">+ mini-passo</button>
       <label class="lbl" style="margin-top:12px">Total (ex.: 12 pontos)</label><input class="field s-total" value="${esc(data.total)}" />
@@ -922,6 +921,60 @@ window.newFullLesson = (courses) => {
   window._renumSteps = () => $$(".step-card .step-n", m).forEach((el, i) => (el.textContent = `Passo ${i + 1}`));
   $("#f-add-step", m).onclick = () => addStep();
   addStep(); // começa com 1 passo
+
+  // ── Vídeos (upload imediato; blocos criados junto com a aula) ──
+  const newVids = []; // { asset_id, title, filename }
+  const fvWrap = $("#f-videos", m);
+  const drawNewVids = () => {
+    fvWrap.innerHTML = "";
+    if (!newVids.length) {
+      fvWrap.innerHTML = `<div class="empty" style="padding:8px 0">nenhum vídeo ainda</div>`;
+      return;
+    }
+    newVids.forEach((v, i) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
+      row.innerHTML = `
+        <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
+        <input class="field fv-t" maxlength="15" value="${esc(v.title)}" placeholder="Título (15)" style="flex:1;margin:0" />
+        <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(v.filename)}</span>
+        <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
+        <button class="btn ghost sm" data-act="down" type="button" ${i === newVids.length - 1 ? "disabled" : ""}>▼</button>
+        <button class="btn danger sm" data-act="del" type="button">×</button>`;
+      row.querySelector(".fv-t").oninput = (ev) => { v.title = ev.target.value; };
+      row.querySelector('[data-act="up"]').onclick = () => {
+        [newVids[i - 1], newVids[i]] = [newVids[i], newVids[i - 1]]; drawNewVids();
+      };
+      row.querySelector('[data-act="down"]').onclick = () => {
+        [newVids[i + 1], newVids[i]] = [newVids[i], newVids[i + 1]]; drawNewVids();
+      };
+      row.querySelector('[data-act="del"]').onclick = () => {
+        newVids.splice(i, 1); drawNewVids();
+      };
+      fvWrap.appendChild(row);
+    });
+  };
+  drawNewVids();
+
+  $("#fv-add", m).onclick = async () => {
+    const f = $("#fv-file", m).files[0];
+    if (!f) { $("#fv-status", m).textContent = "Escolha um arquivo de vídeo."; return; }
+    if (!(f.type || "").startsWith("video/")) {
+      $("#fv-status", m).textContent = "O arquivo precisa ser um vídeo."; return;
+    }
+    $("#fv-status", m).textContent = "enviando vídeo… (pode demorar)";
+    try {
+      const asset = await uploadAsset(f);
+      newVids.push({
+        asset_id: asset.id,
+        title: $("#fv-title", m).value.trim().slice(0, 15),
+        filename: asset.filename,
+      });
+      $("#fv-title", m).value = ""; $("#fv-file", m).value = "";
+      $("#fv-status", m).textContent = "vídeo enviado ✓";
+      drawNewVids();
+    } catch (e) { $("#fv-status", m).textContent = "erro: " + e.message; }
+  };
 
   // Upload da capa (arquivo do PC → asset). Arquivo tem prioridade sobre a URL.
   let coverAssetId = null;
@@ -969,6 +1022,7 @@ window.newFullLesson = (courses) => {
     }));
     const payload = {
       title,
+      description: $("#f-desc", m).value.trim() || undefined,
       course_id: $("#f-course", m).value || null,
       category_id: $("#f-category", m).value || null,
       technique: $("#f-tech", m).value,
@@ -993,7 +1047,15 @@ window.newFullLesson = (courses) => {
     const btn = $("#f-save", m);
     btn.disabled = true; $("#f-status", m).textContent = "Criando…";
     try {
-      await api("/admin/lessons/full", { method: "POST", body: JSON.stringify(payload) });
+      const { lesson } = await api("/admin/lessons/full", { method: "POST", body: JSON.stringify(payload) });
+      // Cria os blocos de vídeo na ordem das linhas.
+      for (let i = 0; i < newVids.length; i++) {
+        const v = newVids[i];
+        await api(`/admin/lessons/${lesson.id}/blocks`, { method: "POST", body: JSON.stringify({
+          type: "video", asset_id: v.asset_id, position: i,
+          content: { title: (v.title || "").trim().slice(0, 15), filename: v.filename },
+        }) });
+      }
       m.remove(); render("lessons");
     } catch (e) {
       btn.disabled = false; $("#f-status", m).textContent = "Erro: " + e.message;
@@ -1015,6 +1077,7 @@ window.editFull = async (lessonId) => {
 
   const m = modal(`<h3>Editar aula</h3>
     <label class="lbl">Título / Nome do produto *</label><input class="field" id="e-title" value="${esc(lesson.title)}" />
+    <label class="lbl">Descrição (aparece no topo da aula no app)</label><textarea class="field" id="e-desc">${esc(lesson.description)}</textarea>
     <div class="row" style="gap:12px">
       <div style="flex:1"><label class="lbl">Técnica</label><select class="field" id="e-tech"><option value="crochet"${sel(lesson.technique,"crochet")}>Crochê</option><option value="knit"${sel(lesson.technique,"knit")}>Tricô</option></select></div>
       <div style="flex:1"><label class="lbl">Dificuldade</label><select class="field" id="e-dif"><option value="beginner"${sel(lesson.difficulty,"beginner")}>Iniciante</option><option value="intermediate"${sel(lesson.difficulty,"intermediate")}>Intermediário</option><option value="advanced"${sel(lesson.difficulty,"advanced")}>Avançado</option></select></div>
@@ -1025,7 +1088,7 @@ window.editFull = async (lessonId) => {
     </div>
     <label class="lbl">Capa (cole uma URL ou envie um arquivo)</label><input class="field" id="e-cover" value="${esc(lesson.cover_url)}" />
     <input type="file" id="e-cover-file" accept="image/*" style="font-size:11px;margin-top:6px" /><span id="e-cover-st" class="sub" style="font-size:10px;margin-left:8px"></span>
-    <label class="lbl">Vídeo da aula (capítulos = passos com tempo)</label><input class="field" id="e-lvideo" value="${esc(meta.video_url)}" placeholder="cole uma URL ou envie um arquivo" />
+    <label class="lbl">Vídeo da aula (aba "Vídeo" no app; capítulos = passos com tempo)</label><input class="field" id="e-lvideo" value="${esc(meta.video_url)}" placeholder="cole uma URL ou envie um arquivo" />
     <input type="file" id="e-lvideo-file" accept="video/*" style="font-size:11px;margin-top:6px" /><span id="e-lvideo-st" class="sub" style="font-size:10px;margin-left:8px">${meta.video_asset_id ? "🎬 vídeo anexado ✓" : ""}</span>
     <label class="lbl">Fio</label><input class="field" id="e-yarn" value="${esc(meta.yarn || meta.pattern_analysis)}" />
     <label class="lbl">Cor principal</label><input class="field" id="e-color" value="${esc(meta.main_color || meta.color_sequence)}" />
@@ -1033,9 +1096,20 @@ window.editFull = async (lessonId) => {
     <label class="lbl">Materiais (um por linha)</label><textarea class="field" id="e-materials">${esc(matText)}</textarea>
     <label class="lbl">Pontos usados (nome | confiança)</label><textarea class="field" id="e-stitches">${esc(stitchText)}</textarea>
 
-    <div class="row" style="margin-top:18px"><h2 style="margin:0;font-size:15px">Passos</h2><div class="spacer"></div>
-      <button class="btn ghost sm" type="button" id="e-add-step">+ passo</button></div>
+    <div class="row" style="margin-top:18px"><h2 style="margin:0;font-size:15px">Guia</h2><div class="spacer"></div>
+      <button class="btn ghost sm" type="button" id="e-add-step">+ passo do guia</button></div>
+    <div class="sub" style="margin-top:4px;font-size:11px">O guia é o passo a passo em texto e imagens — não aceita vídeo. Os vídeos da aula ficam na seção Vídeos abaixo.</div>
     <div id="e-steps"></div>
+
+    <div class="row" style="margin-top:22px"><h2 style="margin:0;font-size:15px">Vídeos</h2></div>
+    <div class="sub" style="margin-top:4px;font-size:11px">Vários vídeos por aula, ordenados com ▲▼. O título curto (máx. 15 caracteres) vira a aba na tela de vídeo do app.</div>
+    <div id="e-videos"></div>
+    <div class="row" style="margin-top:10px;gap:8px;align-items:center">
+      <input class="field" id="ev-title" maxlength="15" placeholder="Título (máx. 15)" style="flex:1;margin:0" />
+      <input type="file" id="ev-file" accept="video/*" style="font-size:11px;flex:1" />
+      <button class="btn ghost sm" type="button" id="ev-add">+ vídeo</button>
+    </div>
+    <span id="ev-status" class="sub" style="font-size:10px"></span>
 
     <label class="lbl" style="margin-top:12px"><input type="checkbox" id="e-pub" ${lesson.status === "published" ? "checked" : ""} style="width:auto"> Publicada</label>
     <label class="lbl"><input type="checkbox" id="e-premium" ${lesson.is_premium ? "checked" : ""} style="width:auto">${icon('lock')} Premium (só assinantes)</label>
@@ -1047,6 +1121,67 @@ window.editFull = async (lessonId) => {
     </div>`);
 
   const stepsWrap = $("#e-steps", m);
+
+  // ── Vídeos da aula (blocos type=video, aba "Vídeo" do app) ──
+  const vids = blocks.filter((b) => b.type === "video");
+  const vidsWrap = $("#e-videos", m);
+  const drawVids = () => {
+    vidsWrap.innerHTML = "";
+    if (!vids.length) {
+      vidsWrap.innerHTML = `<div class="empty" style="padding:8px 0">nenhum vídeo ainda</div>`;
+      return;
+    }
+    vids.forEach((b, i) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
+      row.innerHTML = `
+        <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
+        <input class="field ev-t" maxlength="15" value="${esc(b.content?.title || "")}" placeholder="Título (15)" style="flex:1;margin:0" />
+        <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(b.content?.filename || "")}</span>
+        <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
+        <button class="btn ghost sm" data-act="down" type="button" ${i === vids.length - 1 ? "disabled" : ""}>▼</button>
+        <button class="btn danger sm" data-act="del" type="button">×</button>`;
+      row.querySelector(".ev-t").oninput = (ev) => {
+        b.content = { ...(b.content || {}), title: ev.target.value };
+      };
+      row.querySelector('[data-act="up"]').onclick = () => {
+        [vids[i - 1], vids[i]] = [vids[i], vids[i - 1]]; drawVids();
+      };
+      row.querySelector('[data-act="down"]').onclick = () => {
+        [vids[i + 1], vids[i]] = [vids[i], vids[i + 1]]; drawVids();
+      };
+      row.querySelector('[data-act="del"]').onclick = async () => {
+        if (!confirm("Remover este vídeo?")) return;
+        try {
+          await api(`/admin/blocks/${b.id}`, { method: "DELETE" });
+          vids.splice(i, 1); drawVids();
+        } catch (e) { $("#ev-status", m).textContent = "erro: " + e.message; }
+      };
+      vidsWrap.appendChild(row);
+    });
+  };
+  drawVids();
+
+  $("#ev-add", m).onclick = async () => {
+    const f = $("#ev-file", m).files[0];
+    if (!f) { $("#ev-status", m).textContent = "Escolha um arquivo de vídeo."; return; }
+    if (!(f.type || "").startsWith("video/")) {
+      $("#ev-status", m).textContent = "O arquivo precisa ser um vídeo."; return;
+    }
+    const t = $("#ev-title", m).value.trim().slice(0, 15);
+    $("#ev-status", m).textContent = "enviando vídeo… (pode demorar)";
+    try {
+      const asset = await uploadAsset(f);
+      const { block } = await api(`/admin/lessons/${lessonId}/blocks`, {
+        method: "POST",
+        body: JSON.stringify({ type: "video", asset_id: asset.id, content: { title: t, filename: asset.filename } }),
+      });
+      vids.push(block);
+      $("#ev-title", m).value = ""; $("#ev-file", m).value = "";
+      $("#ev-status", m).textContent = "vídeo enviado ✓ (salve para aplicar título e ordem)";
+      drawVids();
+    } catch (e) { $("#ev-status", m).textContent = "erro: " + e.message; }
+  };
 
   // Upload da capa (arquivo do PC → asset). Arquivo tem prioridade sobre a URL.
   let coverAssetId = null;
@@ -1109,7 +1244,7 @@ window.editFull = async (lessonId) => {
         </div>
       </div>
       <label class="lbl">Tempo no vídeo da aula (mm:ss, opcional — vira capítulo)</label><input class="field s-time" value="${esc(fmtTime(ct.time))}" placeholder="ex.: 2:40" />
-      <label class="lbl">Sub-passos (mini-passos: título + descrição + vídeo próprio)</label>
+      <label class="lbl">Sub-passos (mini-passos: título + descrição)</label>
       <div class="substeps-wrap"></div>
       <button class="btn ghost sm" type="button" data-act="add-substep" style="margin-top:6px">+ mini-passo</button>
       <label class="lbl" style="margin-top:12px">Total (ex.: 12 pontos)</label><input class="field s-total" value="${esc(ct.total)}" />
@@ -1152,6 +1287,7 @@ window.editFull = async (lessonId) => {
     });
     await api(`/admin/lessons/${lessonId}`, { method: "PATCH", body: JSON.stringify({
       title: $("#e-title", m).value.trim(),
+      description: $("#e-desc", m).value.trim(),
       technique: $("#e-tech", m).value,
       difficulty: $("#e-dif", m).value,
       duration_min: Number($("#e-dur", m).value) || null,
@@ -1180,6 +1316,14 @@ window.editFull = async (lessonId) => {
         position: i,
       }) });
     }
+    // Vídeos: aplica título (máx. 15) e a ordem atual das linhas.
+    for (let i = 0; i < vids.length; i++) {
+      const b = vids[i];
+      await api(`/admin/blocks/${b.id}`, { method: "PATCH", body: JSON.stringify({
+        content: { ...(b.content || {}), title: (b.content?.title || "").trim().slice(0, 15) },
+        position: i,
+      }) });
+    }
   };
 
   $("#e-add-step", m).onclick = async () => {
@@ -1199,22 +1343,145 @@ window.editFull = async (lessonId) => {
   };
 };
 
+// ─── Feedback da aula (curtidas + comentários do sheet "⋯" do app) ──
+window.viewFeedback = async (lessonId, title) => {
+  const { likes, comments_count, comments } = await api(`/admin/lessons/${lessonId}/feedback`);
+  const rows = (comments || []).map((cm) =>
+    `<div style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px">
+       <div class="row" style="justify-content:space-between;font-size:11px;color:var(--muted)">
+         <strong>${esc(cm.user_name)}</strong>
+         <span>${new Date(cm.created_at).toLocaleDateString("pt-BR")}</span>
+       </div>
+       <div style="font-size:13px;margin-top:4px">${esc(cm.comment)}</div>
+     </div>`).join("") ||
+    `<div class="empty">nenhum comentário ainda</div>`;
+  modal(`<h3>Feedback · ${esc(title)}</h3>
+    <div class="row" style="gap:12px;margin-top:12px">
+      <div style="flex:1;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:26px;font-weight:700">👍 ${likes}</div>
+        <div class="sub" style="font-size:11px">curtidas</div>
+      </div>
+      <div style="flex:1;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:26px;font-weight:700">💬 ${comments_count}</div>
+        <div class="sub" style="font-size:11px">comentários</div>
+      </div>
+    </div>
+    <h2 style="margin-top:18px">Comentários</h2>
+    ${rows}
+    <div class="row" style="margin-top:16px"><button class="btn ghost" onclick="this.closest('.modal-bg').remove()">Fechar</button></div>`);
+};
+
+// ─── Vídeos da aula (aba "Vídeo" do app) ────────────────────────────
+// Vários vídeos por aula (blocos type=video), ordenáveis, cada um com
+// título curto (máx. 15 chars) que vira a aba/chip na tela do app.
+window.editVideos = async (lessonId, title) => {
+  const { blocks } = await api(`/admin/lessons/${lessonId}/blocks`);
+  const vids = blocks.filter((b) => b.type === "video");
+
+  const m = modal(`<h3>Vídeos · ${esc(title)}</h3>
+    <div class="sub" style="margin-bottom:10px">Suba quantos vídeos quiser, ordene com ▲▼ e dê um título curto (máx. 15 caracteres) — os títulos viram as abas na tela de vídeo do app.</div>
+    <div id="vid-list"></div>
+    <h2 style="margin-top:18px">Adicionar vídeo</h2>
+    <label class="lbl">Título curto (máx. 15 caracteres)</label><input class="field" id="v-title" maxlength="15" placeholder="ex.: Base" />
+    <label class="lbl">Arquivo de vídeo</label>
+    <input class="field" type="file" id="v-file" accept="video/*" />
+    <button class="btn sm" id="v-add">+ enviar vídeo</button>
+    <div id="v-status" class="sub" style="margin-top:10px"></div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn" id="v-save">Salvar títulos e ordem</button>
+      <button class="btn ghost" onclick="this.closest('.modal-bg').remove()">Fechar</button>
+    </div>`);
+
+  const list = $("#vid-list", m);
+  const draw = () => {
+    list.innerHTML = "";
+    if (!vids.length) { list.innerHTML = `<div class="empty">nenhum vídeo ainda</div>`; return; }
+    vids.forEach((b, i) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
+      row.innerHTML = `
+        <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
+        <input class="field v-t" maxlength="15" value="${esc(b.content?.title || "")}" placeholder="Título (15)" style="flex:1;margin:0" />
+        <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(b.content?.filename || "")}</span>
+        <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
+        <button class="btn ghost sm" data-act="down" type="button" ${i === vids.length - 1 ? "disabled" : ""}>▼</button>
+        <button class="btn danger sm" data-act="del" type="button">×</button>`;
+      row.querySelector(".v-t").oninput = (ev) => {
+        b.content = { ...(b.content || {}), title: ev.target.value };
+      };
+      row.querySelector('[data-act="up"]').onclick = () => {
+        [vids[i - 1], vids[i]] = [vids[i], vids[i - 1]]; draw();
+      };
+      row.querySelector('[data-act="down"]').onclick = () => {
+        [vids[i + 1], vids[i]] = [vids[i], vids[i + 1]]; draw();
+      };
+      row.querySelector('[data-act="del"]').onclick = async () => {
+        if (!confirm("Remover este vídeo?")) return;
+        try {
+          await api(`/admin/blocks/${b.id}`, { method: "DELETE" });
+          vids.splice(i, 1); draw();
+        } catch (e) { $("#v-status", m).textContent = "erro: " + e.message; }
+      };
+      list.appendChild(row);
+    });
+  };
+  draw();
+
+  $("#v-add", m).onclick = async () => {
+    const f = $("#v-file", m).files[0];
+    if (!f) { $("#v-status", m).textContent = "Escolha um arquivo de vídeo."; return; }
+    if (!(f.type || "").startsWith("video/")) {
+      $("#v-status", m).textContent = "O arquivo precisa ser um vídeo."; return;
+    }
+    const t = $("#v-title", m).value.trim().slice(0, 15);
+    $("#v-status", m).textContent = "enviando vídeo… (pode demorar)";
+    try {
+      const asset = await uploadAsset(f);
+      const { block } = await api(`/admin/lessons/${lessonId}/blocks`, {
+        method: "POST",
+        body: JSON.stringify({ type: "video", asset_id: asset.id, content: { title: t, filename: asset.filename } }),
+      });
+      vids.push(block);
+      $("#v-title", m).value = ""; $("#v-file", m).value = "";
+      $("#v-status", m).textContent = "vídeo enviado ✓ (salve para aplicar a ordem)";
+      draw();
+    } catch (e) { $("#v-status", m).textContent = "erro: " + e.message; }
+  };
+
+  $("#v-save", m).onclick = async () => {
+    const btn = $("#v-save", m); btn.disabled = true;
+    $("#v-status", m).textContent = "salvando…";
+    try {
+      for (let i = 0; i < vids.length; i++) {
+        const b = vids[i];
+        await api(`/admin/blocks/${b.id}`, { method: "PATCH", body: JSON.stringify({
+          content: { ...(b.content || {}), title: (b.content?.title || "").trim().slice(0, 15) },
+          position: i,
+        }) });
+      }
+      m.remove(); render("lessons");
+    } catch (e) { btn.disabled = false; $("#v-status", m).textContent = "erro: " + e.message; }
+  };
+};
+
 // Editor de blocos (conteúdo misto + upload)
 window.editBlocks = async (lessonId, title) => {
-  const { blocks } = await api(`/admin/lessons/${lessonId}/blocks`);
+  const { blocks: allBlocks } = await api(`/admin/lessons/${lessonId}/blocks`);
+  // Vídeos são gerenciados no modal "vídeos"; o guia não os mostra.
+  const blocks = allBlocks.filter((b) => b.type !== "video");
   const list = blocks.map((b) =>
     `<div class="block-item"><span class="type">${b.type}</span>
        <span style="flex:1;font-size:13px">${esc(b.content?.text || b.kind || b.storage_key || "")}</span>
        <button class="btn danger sm" onclick="delBlock('${b.id}','${lessonId}','${esc(title)}')">×</button></div>`).join("") ||
     `<div class="empty">nenhum bloco ainda</div>`;
-  const m = modal(`<h3>Conteúdo · ${esc(title)}</h3>
+  const m = modal(`<h3>Guia · ${esc(title)}</h3>
     <div id="blocklist">${list}</div>
     <h2 style="margin-top:18px">Adicionar bloco</h2>
     <label class="lbl">Texto</label><textarea class="field" id="b-text" placeholder="parágrafo da aula"></textarea>
     <button class="btn sm" id="b-add-text">+ texto</button>
     <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
-    <label class="lbl">Mídia (vídeo / imagem / pdf)</label>
-    <input class="field" type="file" id="b-file" accept="video/*,image/*,application/pdf" />
+    <label class="lbl">Mídia (imagem / pdf — o guia não aceita vídeo)</label>
+    <input class="field" type="file" id="b-file" accept="image/*,application/pdf" />
     <button class="btn sm" id="b-add-media">+ enviar mídia</button>
     <div id="b-status" class="sub" style="margin-top:10px"></div>
     <div class="row" style="margin-top:16px"><button class="btn ghost" onclick="this.closest('.modal-bg').remove()">Fechar</button></div>`);
@@ -1228,10 +1495,18 @@ window.editBlocks = async (lessonId, title) => {
   $("#b-add-media", m).onclick = async () => {
     const f = $("#b-file", m).files[0];
     if (!f) return;
+    if ((f.type || "").startsWith("video/")) {
+      $("#b-status", m).textContent = "O guia não aceita vídeo — envie o vídeo da aula em \"editar\" (campo Vídeo da aula).";
+      return;
+    }
     $("#b-status", m).textContent = "enviando…";
     const fd = new FormData(); fd.append("file", f);
     const { asset } = await api("/admin/assets", { method: "POST", body: fd });
-    const type = asset.kind === "video" ? "video" : asset.kind === "image" ? "image" : "material";
+    if (asset.kind === "video") {
+      $("#b-status", m).textContent = "O guia não aceita vídeo — envie o vídeo da aula em \"editar\" (campo Vídeo da aula).";
+      return;
+    }
+    const type = asset.kind === "image" ? "image" : "material";
     await api(`/admin/lessons/${lessonId}/blocks`, { method: "POST", body: JSON.stringify({ type, asset_id: asset.id, content: { filename: asset.filename } }) });
     m.remove(); editBlocks(lessonId, title);
   };

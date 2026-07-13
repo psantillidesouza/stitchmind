@@ -74,6 +74,11 @@ class Lesson {
   // Vídeo da aula (nível lesson) com capítulos = passos com tempo.
   final String? lessonVideoUrl;
   final String? lessonVideoPoster;
+  // Ficha técnica (meta preenchido no painel admin).
+  final String? yarn;
+  final String? mainColor;
+  final String? crochetHook;
+  final List<String> materials;
 
   const Lesson({
     required this.id,
@@ -92,40 +97,60 @@ class Lesson {
     this.progress,
     this.lessonVideoUrl,
     this.lessonVideoPoster,
+    this.yarn,
+    this.mainColor,
+    this.crochetHook,
+    this.materials = const [],
   });
 
-  factory Lesson.fromJson(Map<String, dynamic> j) => Lesson(
-        id: j['id'] as String,
-        title: j['title'] as String,
-        slug: j['slug'] as String,
-        description: (j['description'] as String?) ?? '',
-        technique: j['technique'] as String?,
-        difficulty: j['difficulty'] as String?,
-        durationMin: (j['duration_min'] as num?)?.toInt(),
-        courseTitle: j['course_title'] as String?,
-        coverUrl: j['cover_url'] as String?,
-        isPremium: (j['is_premium'] as bool?) ?? false,
-        category: j['category'] as String?,
-        categorySlug: j['category_slug'] as String?,
-        createdAt: DateTime.tryParse((j['created_at'] as String?) ?? ''),
-        progress: j['progress'] == null
-            ? null
-            : LessonProgress.fromJson(j['progress'] as Map<String, dynamic>),
-        lessonVideoUrl:
-            (j['meta'] is Map) ? (j['meta']['video_url'] as String?) : null,
-        lessonVideoPoster: (j['meta'] is Map)
-            ? (j['meta']['video_poster_url'] as String?)
-            : null,
-      );
+  factory Lesson.fromJson(Map<String, dynamic> j) {
+    final meta = j['meta'] is Map ? j['meta'] as Map : const {};
+    String? metaStr(String key) {
+      final v = meta[key];
+      return v is String && v.trim().isNotEmpty ? v.trim() : null;
+    }
+
+    return Lesson(
+      id: j['id'] as String,
+      title: j['title'] as String,
+      slug: j['slug'] as String,
+      description: (j['description'] as String?) ?? '',
+      technique: j['technique'] as String?,
+      difficulty: j['difficulty'] as String?,
+      durationMin: (j['duration_min'] as num?)?.toInt(),
+      courseTitle: j['course_title'] as String?,
+      coverUrl: j['cover_url'] as String?,
+      isPremium: (j['is_premium'] as bool?) ?? false,
+      category: j['category'] as String?,
+      categorySlug: j['category_slug'] as String?,
+      createdAt: DateTime.tryParse((j['created_at'] as String?) ?? ''),
+      progress: j['progress'] == null
+          ? null
+          : LessonProgress.fromJson(j['progress'] as Map<String, dynamic>),
+      lessonVideoUrl: metaStr('video_url'),
+      lessonVideoPoster: metaStr('video_poster_url'),
+      // Fallback pras chaves legadas que o painel também exibe.
+      yarn: metaStr('yarn') ?? metaStr('pattern_analysis'),
+      mainColor: metaStr('main_color') ?? metaStr('color_sequence'),
+      crochetHook: metaStr('crochet_hook'),
+      materials: meta['materials'] is List
+          ? (meta['materials'] as List)
+              .whereType<String>()
+              .where((m) => m.trim().isNotEmpty)
+              .toList()
+          : const [],
+    );
+  }
 }
 
 @immutable
 class LessonBlock {
   final String id;
   final int position;
-  final String type; // text | image | video | material
+  final String type; // text | image | video | material | step
   final Map<String, dynamic> content;
   final String? url; // URL assinada da mídia (se houver)
+  final String? posterUrl; // poster do vídeo (type == 'video')
 
   const LessonBlock({
     required this.id,
@@ -133,10 +158,14 @@ class LessonBlock {
     required this.type,
     required this.content,
     this.url,
+    this.posterUrl,
   });
 
   String get text => (content['text'] as String?) ?? '';
   String get filename => (content['filename'] as String?) ?? '';
+
+  // Título curto do vídeo (type == 'video', aba Vídeo do app).
+  String get videoTitle => ((content['title'] as String?) ?? '').trim();
 
   // Campos de passo (type == 'step')
   int get stepNumber => (content['number'] as num?)?.toInt() ?? 0;
@@ -181,6 +210,7 @@ class LessonBlock {
         type: (j['type'] ?? 'text').toString(),
         content: _parseContent(j['content']),
         url: j['url'] as String?,
+        posterUrl: j['poster_url'] as String?,
       );
 
   /// `content` pode chegar como objeto OU como string JSON (ou texto puro).

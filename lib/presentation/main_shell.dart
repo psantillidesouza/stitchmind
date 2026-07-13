@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/app_state.dart';
 import '../core/feature_flags.dart';
+import '../core/rating_service.dart';
 import '../core/theme/app_colors.dart';
 import '../l10n/app_localizations.dart';
 import 'providers/platform_providers.dart';
@@ -29,10 +33,21 @@ class _MainShellState extends ConsumerState<MainShell> {
     const _Tab('/perfil', 'nav_tab_profile', Icons.person_rounded),
   ];
 
+  Timer? _ratingTimer;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowPaywall());
+    // Avaliação nativa: só depois de ~5 min de sessão (e as demais regras —
+    // pós-onboarding, 1x/dia — ficam no RatingService/AppState).
+    _ratingTimer = Timer(RatingService.sessionDelay, RatingService.maybeRequest);
+  }
+
+  @override
+  void dispose() {
+    _ratingTimer?.cancel();
+    super.dispose();
   }
 
   /// Mostra a paywall a cada abertura do app enquanto o usuário não for
@@ -54,7 +69,15 @@ class _MainShellState extends ConsumerState<MainShell> {
     }
     if (sub.isReallyPremium) return;
     AppState.paywallShownThisLaunch = true;
-    if (mounted) context.push('/paywall');
+    // De vez em quando (cooldown de 2 dias + sorteio 50/50), a abertura mostra
+    // a oferta anual com 3 dias grátis no lugar do paywall padrão — só para
+    // quem não tem NENHUM plano ativo (isReallyPremium já filtrou acima).
+    final showAnnualOffer =
+        AppState.annualOfferCooldownOver() && Random().nextBool();
+    if (mounted) {
+      context.push(
+          showAnnualOffer ? '/paywall-annual?src=periodic' : '/paywall');
+    }
   }
 
   int _indexFor(String location) {

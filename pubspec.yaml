@@ -1,7 +1,7 @@
 name: stitchmind
 description: Crochê, Tricô & Knit — biblioteca de pontos, contador e gerenciador de projetos.
 publish_to: "none"
-version: 1.6.1+9
+version: 1.6.2+11
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

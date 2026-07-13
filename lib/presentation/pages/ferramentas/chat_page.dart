@@ -11,13 +11,49 @@ import '../../widgets/premium_gate.dart';
 import '../../../l10n/app_localizations.dart';
 import '../aulas_salvas/saved_lessons_page.dart';
 
-class ChatPage extends ConsumerStatefulWidget {
+class ChatPage extends StatelessWidget {
   const ChatPage({super.key});
+
   @override
-  ConsumerState<ChatPage> createState() => _ChatPageState();
+  Widget build(BuildContext context) {
+    return GradientBg(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(context.l10n.tr('chat_appbar_title')),
+          leading: const BackButton(),
+          actions: [
+            IconButton(
+              tooltip: context.l10n.tr('chat_tooltip_saved_lessons'),
+              icon: const Icon(Icons.bookmark_rounded),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const SavedLessonsPage()),
+              ),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: PremiumGate(
+            title: context.l10n.tr('chat_gate_title'),
+            subtitle: context.l10n.tr('chat_gate_subtitle'),
+            image: 'assets/illustrations/chat.png',
+            child: const ChatView(),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _ChatPageState extends ConsumerState<ChatPage> {
+/// Conversa com a IA sem casca (Scaffold/AppBar/gate) — dá pra embutir em
+/// qualquer tela, como a tab "Chat com IA" do guia da aula.
+class ChatView extends ConsumerStatefulWidget {
+  const ChatView({super.key});
+  @override
+  ConsumerState<ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends ConsumerState<ChatView> {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
   final _focus = FocusNode();
@@ -102,69 +138,44 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GradientBg(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: Text(context.l10n.tr('chat_appbar_title')),
-          leading: const BackButton(),
-          actions: [
-            IconButton(
-              tooltip: context.l10n.tr('chat_tooltip_saved_lessons'),
-              icon: const Icon(Icons.bookmark_rounded),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const SavedLessonsPage()),
-              ),
+    return Column(
+      children: [
+        if (_messages.length <= 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: Image.asset(
+              'assets/illustrations/chat.png',
+              height: 128,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
-          ],
-        ),
-        body: SafeArea(
-          child: PremiumGate(
-            title: context.l10n.tr('chat_gate_title'),
-            subtitle: context.l10n.tr('chat_gate_subtitle'),
-            image: 'assets/illustrations/chat.png',
-            child: Column(
-            children: [
-              if (_messages.length <= 1)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12, bottom: 4),
-                  child: Image.asset(
-                    'assets/illustrations/chat.png',
-                    height: 128,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
-                ),
-              Expanded(
-                child: ListView.builder(
-                  controller: _scroll,
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  itemCount: _messages.length + (_loading ? 1 : 0),
-                  itemBuilder: (_, i) {
-                    if (i == _messages.length) return const _TypingBubble();
-                    final m = _messages[i];
-                    return _Bubble(
-                      message: m,
-                      onSave: () => _saveLesson(m.content),
-                    );
-                  },
-                ),
-              ),
-              _IntentChips(selected: _intent, onSelect: _setIntent),
-              _Composer(
-                controller: _controller,
-                focusNode: _focus,
-                onSend: _send,
-                enabled: !_loading,
-                hint: _intent != null
-                    ? _kIntents(context)[_intent!].$3
-                    : context.l10n.tr('chat_composer_hint'),
-              ),
-            ],
           ),
+        Expanded(
+          child: ListView.builder(
+            controller: _scroll,
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            itemCount: _messages.length + (_loading ? 1 : 0),
+            itemBuilder: (_, i) {
+              if (i == _messages.length) return const _TypingBubble();
+              final m = _messages[i];
+              return _Bubble(
+                message: m,
+                onSave: () => _saveLesson(m.content),
+              );
+            },
           ),
         ),
-      ),
+        _IntentChips(selected: _intent, onSelect: _setIntent),
+        _Composer(
+          controller: _controller,
+          focusNode: _focus,
+          onSend: _send,
+          enabled: !_loading,
+          hint: _intent != null
+              ? _kIntents(context)[_intent!].$3
+              : context.l10n.tr('chat_composer_hint'),
+        ),
+      ],
     );
   }
 }

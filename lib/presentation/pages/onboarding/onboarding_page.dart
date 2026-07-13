@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/app_state.dart';
-import '../../../core/rating_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/store_reviews.dart';
@@ -614,16 +613,9 @@ class _Social extends ConsumerStatefulWidget {
 }
 
 class _SocialState extends ConsumerState<_Social> {
-  @override
-  void initState() {
-    super.initState();
-    // Pede a avaliação nativa assim que ESTA tela aparece — o pop-up fica
-    // sobre a prova social (não sobre a paywall). Após o 1º frame pra garantir
-    // que a tela já está visível. Best-effort e uma única vez (RatingService).
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      RatingService.maybeRequest();
-    });
-  }
+  // A avaliação nativa NÃO é pedida aqui: o pop-up atrapalhava o onboarding.
+  // Ela é agendada pelo MainShell (5 min de sessão, no máx. 1x/dia, só depois
+  // do onboarding) — ver RatingService.
 
   @override
   Widget build(BuildContext context) {
@@ -696,18 +688,23 @@ class _ReviewCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (review.title != null && review.title!.isNotEmpty)
-                    Text(review.title!,
-                        style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 6),
-                  _stars(review.rating),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (review.title != null && review.title!.isNotEmpty)
+                      Text(review.title!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 6),
+                    _stars(review.rating),
+                  ],
+                ),
               ),
+              const SizedBox(width: 12),
               const CircleAvatar(
                   radius: 24,
                   backgroundColor: AppColors.peach,
@@ -716,7 +713,10 @@ class _ReviewCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Text(review.text, style: Theme.of(context).textTheme.bodyLarge),
+          Text(review.text,
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 12),
           Text('${review.author} · ${_storeLabel(review.store)}',
               style: Theme.of(context).textTheme.bodySmall),

@@ -20,6 +20,7 @@ import '../../presentation/pages/painel/lesson_detail_page.dart';
 import '../../presentation/pages/onboarding/onboarding_page.dart';
 import '../../presentation/pages/patterns/pattern_detail_page.dart';
 import '../../presentation/pages/patterns/patterns_page.dart';
+import '../../presentation/pages/paywall/paywall_annual_offer_page.dart';
 import '../../presentation/pages/paywall/paywall_page.dart';
 import '../../presentation/pages/perfil/perfil_page.dart';
 import '../../presentation/pages/stitches/stitch_detail_page.dart';
@@ -56,7 +57,7 @@ GoRouter createRouter({
       if (!kCommunityEnabled && loc.startsWith('/community')) return '/';
 
       // Paywall é SOFT: acessível por push, nunca obriga. Não redireciona.
-      if (loc == '/paywall') return null;
+      if (loc == '/paywall' || loc == '/paywall-annual') return null;
 
       // 1) Onboarding sempre primeiro.
       if (!AppState.onboardingSeen) {
@@ -84,6 +85,16 @@ GoRouter createRouter({
         pageBuilder: (_, state) => const NoTransitionPage(
           name: 'paywall',
           child: PaywallGate(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootKey,
+        path: '/paywall-annual',
+        pageBuilder: (_, state) => NoTransitionPage(
+          name: 'paywall_annual',
+          child: PaywallAnnualOfferPage(
+            source: state.uri.queryParameters['src'] ?? 'paywall_close',
+          ),
         ),
       ),
       GoRoute(

@@ -224,7 +224,13 @@ lessonRoutes.get("/lessons/:slug", optionalAuth, async (c) => {
         );
         content = { ...content, substeps };
       }
-      return { ...b, content, url };
+      // Bloco de vídeo (aba Vídeo do app): resolve o poster gerado no upload.
+      let poster_url: string | null = null;
+      if (b.type === "video" && b.asset_id) {
+        const [va] = await sql`SELECT poster_asset_id FROM assets WHERE id = ${b.asset_id}`;
+        if (va?.poster_asset_id) poster_url = mediaUrl(va.poster_asset_id);
+      }
+      return { ...b, content, url, poster_url };
     }),
   );
 
@@ -286,6 +292,34 @@ lessonRoutes.post("/lessons/:id/progress", requireAuth, async (c) => {
       last_position_s = ${p.last_position_s ?? 0},
       completed_at = CASE WHEN ${completed} THEN now() ELSE lesson_progress.completed_at END,
       updated_at = now()
+  `;
+  return c.json({ ok: true });
+});
+
+// ─── Feedback da aula (sheet "⋯" no app) ────────────────────────────
+// 1 like e 1 comentário por usuário por aula (UNIQUE no banco);
+// comentário novo substitui o anterior.
+const LessonFeedbackSchema = z.object({
+  kind: z.enum(["like", "comment"]),
+  comment: z.string().trim().max(200).optional(),
+});
+
+lessonRoutes.post("/lessons/:id/feedback", requireAuth, async (c) => {
+  const user = c.get("user") as AppUser;
+  const lessonId = c.req.param("id");
+  const parsed = LessonFeedbackSchema.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) return c.json({ error: "payload inválido" }, 400);
+  const d = parsed.data;
+  if (d.kind === "comment" && !(d.comment ?? "").length) {
+    return c.json({ error: "comentário vazio" }, 400);
+  }
+  await sql`
+    INSERT INTO lesson_feedback (lesson_id, user_id, kind, comment)
+    VALUES (${lessonId}, ${user.id}, ${d.kind}, ${d.kind === "comment" ? d.comment! : null})
+    ON CONFLICT (lesson_id, user_id, kind) DO UPDATE SET
+      comment = CASE WHEN ${d.kind === "comment"} THEN ${d.comment ?? null}
+                     ELSE lesson_feedback.comment END,
+      created_at = now()
   `;
   return c.json({ ok: true });
 });

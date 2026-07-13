@@ -58,6 +58,11 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
   bool _remindMe = true;
   String? _selectedId;
 
+  /// Este é o paywall pós-onboarding (1ª vez)? Se sim, o X leva à oferta de
+  /// saída (anual + 3 dias grátis) em vez de fechar. Consumido no initState —
+  /// paywalls futuros nunca mais disparam a oferta.
+  bool _offerOnClose = false;
+
   List<String> _benefits(BuildContext c) => [
         c.l10n.tr('pay_benefit_lessons_no_ads'),
         c.l10n.tr('pay_benefit_unlimited_photo_chat'),
@@ -69,6 +74,7 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
   void initState() {
     super.initState();
     AppState.paywallShownThisLaunch = true;
+    _offerOnClose = AppState.consumeAnnualOfferPending();
     ref.read(analyticsServiceProvider).logPaywallView(variant: widget.variant);
     _load();
   }
@@ -135,7 +141,15 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
     }
   }
 
-  void _close() => context.canPop() ? context.pop() : context.go('/');
+  void _close() {
+    // Oferta de saída: SÓ no paywall pós-onboarding (1ª vez), quem fecha sem
+    // assinar vê o plano anual com 3 dias de teste grátis.
+    if (_offerOnClose) {
+      context.pushReplacement('/paywall-annual');
+      return;
+    }
+    context.canPop() ? context.pop() : context.go('/');
+  }
 
   Future<void> _openUrl(String url) async {
     try {
@@ -273,10 +287,13 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
                                   ))
                               .toList(),
                         ),
-                      _ReminderToggle(
-                        value: _remindMe,
-                        onChanged: (v) => setState(() => _remindMe = v),
-                      ),
+                      // Só faz sentido quando o plano selecionado tem teste
+                      // grátis — sem trial não há "fim do teste" pra lembrar.
+                      if (trial != null)
+                        _ReminderToggle(
+                          value: _remindMe,
+                          onChanged: (v) => setState(() => _remindMe = v),
+                        ),
                     ],
                   ),
                 ),
@@ -290,7 +307,8 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
             right: 12,
             child: _CircleX(onTap: _close),
           ),
-          if (_celebrating) const Positioned.fill(child: _Celebration()),
+          if (_celebrating)
+            const Positioned.fill(child: PaywallCelebration()),
         ],
       ),
     );
@@ -776,8 +794,9 @@ class _CtaButton extends StatelessWidget {
 }
 
 // ─── Overlay de celebração: confetes + selo "Premium" ───────────────
-class _Celebration extends StatelessWidget {
-  const _Celebration();
+// Público: usado também pela oferta de saída (paywall_annual_offer_page.dart).
+class PaywallCelebration extends StatelessWidget {
+  const PaywallCelebration({super.key});
   @override
   Widget build(BuildContext context) {
     return const IgnorePointer(

@@ -756,6 +756,22 @@ adminRoutes.post("/lessons/full", async (c) => {
 
 // ─── Blocos (conteúdo misto) ────────────────────────────────────────
 
+// Feedback da aula: total de curtidas + comentários (1 de cada por usuário).
+adminRoutes.get("/lessons/:id/feedback", async (c) => {
+  const lessonId = c.req.param("id");
+  const [counts] = await sql`
+    SELECT
+      count(*) FILTER (WHERE kind = 'like')::int    AS likes,
+      count(*) FILTER (WHERE kind = 'comment')::int AS comments
+    FROM lesson_feedback WHERE lesson_id = ${lessonId}`;
+  const comments = await sql`
+    SELECT f.comment, f.created_at, COALESCE(u.name, u.email, 'anônimo') AS user_name
+    FROM lesson_feedback f LEFT JOIN users u ON u.id = f.user_id
+    WHERE f.lesson_id = ${lessonId} AND f.kind = 'comment'
+    ORDER BY f.created_at DESC`;
+  return c.json({ likes: counts.likes, comments_count: counts.comments, comments });
+});
+
 adminRoutes.get("/lessons/:id/blocks", async (c) => {
   const rows = await sql`
     SELECT b.*, a.bucket, a.storage_key, a.mime, a.kind
@@ -769,6 +785,9 @@ adminRoutes.get("/lessons/:id/blocks", async (c) => {
   return c.json({ blocks });
 });
 
+// Blocos "video" são a aba Vídeo do app (vários por aula, ordenados, com
+// título curto em content.title). O guia (steps/texto/imagem) não aceita
+// vídeo — esse bloqueio fica na UI do painel.
 const BlockSchema = z.object({
   type: z.enum(["text", "image", "video", "material", "step"]),
   position: z.number().int().optional(),
