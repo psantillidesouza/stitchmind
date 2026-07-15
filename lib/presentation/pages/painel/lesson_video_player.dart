@@ -215,7 +215,6 @@ class _LessonVideoPlayerPageState extends State<LessonVideoPlayerPage> {
                         SizedBox(width: 8),
                         Text('Feedback',
                             style: TextStyle(
-                                fontFamily: 'Poppins',
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.ink)),
@@ -353,9 +352,8 @@ class _LessonVideoPlayerPageState extends State<LessonVideoPlayerPage> {
                             child: Text(
                               '${_speeds[_speedIdx] % 1 == 0 ? _speeds[_speedIdx].toInt() : _speeds[_speedIdx]}x',
                               style: const TextStyle(
-                                  fontFamily: 'Poppins',
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
                                   color: AppColors.ink),
                             ),
                           ),
@@ -374,9 +372,8 @@ class _LessonVideoPlayerPageState extends State<LessonVideoPlayerPage> {
 }
 
 const _timeStyle = TextStyle(
-    fontFamily: 'Poppins',
     fontSize: 13,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
     color: AppColors.walnutMuted);
 
 String _fmt(Duration d) {
@@ -422,9 +419,8 @@ class _ChapterPill extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 14.5,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                 color: active ? AppColors.coral : AppColors.walnut,
               ),
             ),

@@ -210,7 +210,6 @@ class _CounterPageState extends ConsumerState<CounterPage>
                 child: Text(
                   '${project.currentRow}',
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
                     fontSize: 180,
                     fontWeight: FontWeight.w600,
                     color: AppColors.walnut,
@@ -224,7 +223,6 @@ class _CounterPageState extends ConsumerState<CounterPage>
                 Text(
                   'de ${project.targetRow}',
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
                     fontSize: 22,
                     color: AppColors.walnutSoft,
                   ),

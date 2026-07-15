@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -47,8 +48,15 @@ class ChatPage extends StatelessWidget {
 
 /// Conversa com a IA sem casca (Scaffold/AppBar/gate) — dá pra embutir em
 /// qualquer tela, como a tab "Chat com IA" do guia da aula.
+///
+/// [prefill] preenche o campo de mensagem (ex.: "Preciso de Ajuda" do guia).
+/// [gateOnSend] exige plano ativo NA HORA DE ENVIAR: sem plano, abre a
+/// paywall e mantém a mensagem digitada pra quando a pessoa voltar.
 class ChatView extends ConsumerStatefulWidget {
-  const ChatView({super.key});
+  const ChatView({this.prefill, this.gateOnSend = false, super.key});
+  final String? prefill;
+  final bool gateOnSend;
+
   @override
   ConsumerState<ChatView> createState() => _ChatViewState();
 }
@@ -62,6 +70,21 @@ class _ChatViewState extends ConsumerState<ChatView> {
   bool _loading = false;
 
   @override
+  void initState() {
+    super.initState();
+    if ((widget.prefill ?? '').isNotEmpty) _controller.text = widget.prefill!;
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatView old) {
+    super.didUpdateWidget(old);
+    if (widget.prefill != old.prefill && (widget.prefill ?? '').isNotEmpty) {
+      _controller.text = widget.prefill!;
+      _focus.requestFocus();
+    }
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_messages.isEmpty) {
@@ -72,6 +95,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Future<void> _send() async {
     final text = _controller.text.trim();
     if (text.isEmpty || _loading) return;
+    // Sem plano ativo: abre a paywall e NÃO limpa a mensagem — ao voltar
+    // da paywall a pessoa continua de onde parou.
+    if (widget.gateOnSend &&
+        !ref.read(subscriptionServiceProvider).isSubscribed) {
+      context.push('/paywall');
+      return;
+    }
     _controller.clear();
     setState(() {
       _messages.add(ChatMessage('user', text));
@@ -235,7 +265,6 @@ class _IntentChips extends StatelessWidget {
                 child: Text(
                   '$emoji  $label',
                   style: TextStyle(
-                    fontFamily: 'Poppins',
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                     color: isSel ? AppColors.paper : AppColors.walnut,
@@ -287,7 +316,6 @@ class _Bubble extends StatelessWidget {
                   ? Text(
                       message.content,
                       style: const TextStyle(
-                        fontFamily: 'Poppins',
                         fontSize: 15,
                         height: 1.45,
                         color: AppColors.paper,
@@ -300,7 +328,6 @@ class _Bubble extends StatelessWidget {
                         GptMarkdown(
                           message.content,
                           style: const TextStyle(
-                            fontFamily: 'Poppins',
                             fontSize: 15,
                             height: 1.5,
                             color: AppColors.walnut,
@@ -322,9 +349,8 @@ class _Bubble extends StatelessWidget {
                                   const SizedBox(width: 6),
                                   Text(context.l10n.tr('chat_save_lesson'),
                                       style: const TextStyle(
-                                        fontFamily: 'Poppins',
                                         fontSize: 14,
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w600,
                                         color: AppColors.coral,
                                       )),
                                 ],

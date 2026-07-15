@@ -81,7 +81,6 @@ class _StitchLibraryPageState extends ConsumerState<StitchLibraryPage> {
                     decoration: InputDecoration(
                       hintText: 'buscar ponto, abreviação, categoria…',
                       hintStyle: const TextStyle(
-                        fontFamily: 'Poppins',
                         color: AppColors.walnutMuted,
                       ),
                       prefixIcon: const Icon(
@@ -237,9 +236,8 @@ class _FilterChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 13,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
                 color: selected ? AppColors.paper : AppColors.walnut,
               ),
             ),
@@ -283,7 +281,6 @@ class _StitchTile extends ConsumerWidget {
                   child: Text(
                     stitch.abbrev,
                     style: const TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
                       color: AppColors.walnut,

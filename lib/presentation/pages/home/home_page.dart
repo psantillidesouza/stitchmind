@@ -182,9 +182,8 @@ class _QuickAction extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w400,
                   color: fg,
                   letterSpacing: -0.1,
                 ),
@@ -323,7 +322,6 @@ class _ActiveProjectCard extends StatelessWidget {
                               ? '${project.currentRow}'
                               : '${project.currentRow}/${project.targetRow}',
                           style: const TextStyle(
-                            fontFamily: 'Poppins',
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.walnut,

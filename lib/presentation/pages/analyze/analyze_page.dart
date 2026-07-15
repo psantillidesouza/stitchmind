@@ -638,7 +638,6 @@ class _Tier1Card extends StatelessWidget {
                     child: Text(
                       s.abbrev,
                       style: const TextStyle(
-                        fontFamily: 'Poppins',
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.walnut,
@@ -780,9 +779,8 @@ class _Tier3Card extends StatelessWidget {
                     child: Text(
                       tier3.warning,
                       style: const TextStyle(
-                        fontFamily: 'Poppins',
                         fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w400,
                         color: AppColors.terracottaDeep,
                         height: 1.4,
                       ),
@@ -832,7 +830,6 @@ class _SectionView extends StatelessWidget {
                   child: Text(
                     '${r.row}',
                     style: const TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: AppColors.terracotta,
@@ -1004,7 +1001,7 @@ class _FeedbackButton extends StatelessWidget {
       icon: Icon(icon, size: 14),
       label: Text(
         label,
-        style: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
+        style: const TextStyle(fontSize: 12),
       ),
     );
   }

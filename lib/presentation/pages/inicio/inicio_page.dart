@@ -25,6 +25,12 @@ final homeFilterProvider = StateProvider<String>((ref) => 'trending');
 const _kLessonsPageSize = 6;
 final lessonsPageProvider = StateProvider<int>((ref) => 0);
 
+/// Momento da última recarga das aulas via API (pull-to-refresh ou clique na
+/// paginação). Usado como trava: cliques em sequência na paginação dentro de
+/// [_kLessonsRefreshThrottle] não disparam requisições repetidas.
+final _lessonsRefreshedAtProvider = StateProvider<DateTime?>((ref) => null);
+const _kLessonsRefreshThrottle = Duration(seconds: 15);
+
 class InicioPage extends ConsumerWidget {
   const InicioPage({super.key});
 
@@ -81,8 +87,19 @@ class InicioPage extends ConsumerWidget {
       child: RefreshIndicator(
         color: AppColors.coral,
         onRefresh: () async {
+          ref.read(_lessonsRefreshedAtProvider.notifier).state = DateTime.now();
           ref.invalidate(tipsProvider);
           ref.invalidate(lessonsProvider);
+          // Segura o indicador até a API responder de fato (sem isso o
+          // spinner some na hora e parece que nada foi recarregado).
+          try {
+            await Future.wait([
+              ref.read(tipsProvider.future),
+              ref.read(lessonsProvider.future),
+            ]);
+          } catch (_) {
+            // Falha já fica registrada no provider e aparece nas seções.
+          }
         },
         child: ListView(
           padding: const EdgeInsets.only(bottom: 120),
@@ -203,8 +220,21 @@ class InicioPage extends ConsumerWidget {
                       Pager(
                         total: totalPages,
                         current: page,
-                        onSelect: (p) =>
-                            ref.read(lessonsPageProvider.notifier).state = p,
+                        onSelect: (p) {
+                          ref.read(lessonsPageProvider.notifier).state = p;
+                          // Recarrega as aulas da API ao trocar de página. A
+                          // lista antiga permanece na tela durante o refetch
+                          // (skipLoadingOnRefresh), então não há "piscada".
+                          final last = ref.read(_lessonsRefreshedAtProvider);
+                          final now = DateTime.now();
+                          if (last == null ||
+                              now.difference(last) > _kLessonsRefreshThrottle) {
+                            ref
+                                .read(_lessonsRefreshedAtProvider.notifier)
+                                .state = now;
+                            ref.invalidate(lessonsProvider);
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -321,9 +351,8 @@ class _Chip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: active ? AppColors.paper : AppColors.walnutSoft,
               ),
             ),
@@ -389,17 +418,15 @@ class _TipCard extends StatelessWidget {
           const SizedBox(height: 13),
           Text(tip.title,
               style: const TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 16,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.walnut)),
           const SizedBox(height: 6),
           Text(tip.body,
               style: const TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 13,
                   height: 1.45,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w400,
                   color: AppColors.walnutSoft)),
         ],
       ),

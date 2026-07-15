@@ -150,9 +150,8 @@ class _StepCard extends StatelessWidget {
                     color: AppColors.coral, shape: BoxShape.circle),
                 child: Text('$n',
                     style: const TextStyle(
-                        fontFamily: 'Poppins',
                         fontSize: 14,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white)),
               ),
               const SizedBox(width: 12),
@@ -281,7 +280,6 @@ class _MarkdownFallback extends StatelessWidget {
           ),
           child: GptMarkdown(markdown,
               style: const TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 15.5,
                   height: 1.55,
                   color: AppColors.walnut)),

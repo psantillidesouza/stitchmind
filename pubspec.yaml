@@ -1,7 +1,7 @@
 name: stitchmind
 description: Crochê, Tricô & Knit — biblioteca de pontos, contador e gerenciador de projetos.
 publish_to: "none"
-version: 1.6.2+11
+version: 1.6.3+12
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -85,20 +85,8 @@ flutter:
     - assets/onboarding/
     - assets/illustrations/
 
-  # Fonte única do app: Poppins (um arquivo por peso).
-  fonts:
-    - family: Poppins
-      fonts:
-        - asset: assets/fonts/Poppins-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Poppins-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Poppins-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Poppins-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Poppins-ExtraBold.ttf
-          weight: 800
+  # Tipografia: fontes nativas da plataforma (Roboto no Android,
+  # SF Pro Display no iOS) — ver lib/core/theme/app_fonts.dart.
 
 # ─── Ícone do app (gere com: dart run flutter_launcher_icons) ──────────
 # Requer assets/branding/app_icon.png (1024x1024) e _foreground.png (transparente).

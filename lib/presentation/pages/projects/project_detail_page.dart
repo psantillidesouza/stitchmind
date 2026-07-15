@@ -143,7 +143,6 @@ class ProjectDetailPage extends ConsumerWidget {
                       Text(
                         '${(project.progress * 100).toInt()}%',
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AppColors.walnut,
@@ -314,7 +313,6 @@ class _StatusBadge extends StatelessWidget {
       child: Text(
         status.labelPt,
         style: TextStyle(
-          fontFamily: 'Poppins',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: color,
@@ -337,7 +335,6 @@ class _Stat extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              fontFamily: 'Poppins',
               fontSize: 24,
               fontWeight: FontWeight.w600,
               color: AppColors.walnut,

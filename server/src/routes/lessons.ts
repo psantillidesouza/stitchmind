@@ -323,3 +323,21 @@ lessonRoutes.post("/lessons/:id/feedback", requireAuth, async (c) => {
   `;
   return c.json({ ok: true });
 });
+
+// ─── Voto por passo do guia (like/dislike no card do passo) ─────────
+// 1 voto por usuário por passo; votar de novo troca o voto.
+const StepVoteSchema = z.object({ vote: z.enum(["like", "dislike"]) });
+
+lessonRoutes.post("/blocks/:id/feedback", requireAuth, async (c) => {
+  const user = c.get("user") as AppUser;
+  const blockId = c.req.param("id");
+  const parsed = StepVoteSchema.safeParse(await c.req.json().catch(() => ({})));
+  if (!parsed.success) return c.json({ error: "payload inválido" }, 400);
+  await sql`
+    INSERT INTO lesson_step_feedback (block_id, user_id, vote)
+    VALUES (${blockId}, ${user.id}, ${parsed.data.vote})
+    ON CONFLICT (block_id, user_id) DO UPDATE SET
+      vote = ${parsed.data.vote}, created_at = now()
+  `;
+  return c.json({ ok: true });
+});

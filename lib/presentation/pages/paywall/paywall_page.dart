@@ -1,6 +1,7 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -125,7 +126,12 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
   }
 
   /// Dias de teste grátis do produto selecionado (null se não houver).
+  ///
+  /// Android: SEMPRE null. Este paywall compra o base plan puro (sem ofertas
+  /// — ver [SubscriptionService.purchase]); a oferta de trial da Play pertence
+  /// só à tela de saída (`/paywall-annual`) e não pode "vazar" pra cá.
   int? _trialDays(StoreProduct? p) {
+    if (defaultTargetPlatform == TargetPlatform.android) return null;
     final intro = p?.introductoryPrice;
     if (intro == null || intro.price > 0) return null;
     final n = intro.periodNumberOfUnits;
@@ -180,9 +186,9 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
         await _celebrate();
       }
     } catch (_) {
-      if (kDebugMode && mounted) {
-        await _celebrate();
-      } else if (mounted) {
+      // Erro é erro, inclusive em debug: nada de celebração falsa — o teste
+      // do fluxo feliz se faz com conta sandbox/testador.
+      if (mounted) {
         messenger.showSnackBar(SnackBar(
           content: Text(l10n.tr('pay_purchase_failed')),
           backgroundColor: AppColors.coralDeep,
@@ -253,10 +259,9 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
                         context.l10n.tr('pay_headline'),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 22,
                           height: 1.1,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
@@ -386,7 +391,7 @@ class _PaywallPageState extends ConsumerState<PaywallPage> {
             Text(context.l10n.tr('pay_plans_unavailable'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w700)),
+                    color: Colors.white, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             TextButton(
                 onPressed: _load,
@@ -498,8 +503,7 @@ class _StarsRow extends StatelessWidget {
         const SizedBox(width: 8),
         const Text('4.8',
             style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: Colors.white,
                 fontSize: 14)),
       ],
@@ -627,9 +631,8 @@ class _PlanCard extends StatelessWidget {
                           child: Text(
                             _title(context),
                             style: const TextStyle(
-                                fontFamily: 'Poppins',
                                 fontSize: 16.5,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.white),
                           ),
                         ),
@@ -645,7 +648,7 @@ class _PlanCard extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 13,
                           color: Colors.white.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w500),
+                          fontWeight: FontWeight.w400),
                     ),
                   ],
                 ),
@@ -660,9 +663,8 @@ class _PlanCard extends StatelessWidget {
                   ),
                   child: Text('-$savings%',
                       style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 13,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.sage)),
                 ),
             ],
@@ -783,9 +785,8 @@ class _CtaButton extends StatelessWidget {
                       strokeWidth: 2.4, color: Colors.white))
               : Text(label,
                   style: const TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 17,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white)),
         ),
       ),
@@ -846,9 +847,8 @@ class _PremiumUnlockedBadge extends StatelessWidget {
           Text(
             context.l10n.tr('pay_brand_premium'),
             style: const TextStyle(
-              fontFamily: 'Poppins',
               fontSize: 15,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w600,
               letterSpacing: 1.2,
               color: Colors.white,
             ),

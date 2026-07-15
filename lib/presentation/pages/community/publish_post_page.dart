@@ -81,7 +81,7 @@ class _PublishPostPageState extends ConsumerState<PublishPostPage> {
         elevation: 0,
         foregroundColor: AppColors.walnut,
         title: const Text('Share your work',
-            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
+            style: TextStyle(fontWeight: FontWeight.w600)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -173,8 +173,7 @@ class _PublishPostPageState extends ConsumerState<PublishPostPage> {
                           strokeWidth: 2, color: Colors.white))
                   : const Text('Share',
                       style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 16)),
             ),
           ),
@@ -202,8 +201,7 @@ class _PublishPostPageState extends ConsumerState<PublishPostPage> {
         padding: const EdgeInsets.only(bottom: 8, top: 4),
         child: Text(t,
             style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 14,
                 color: AppColors.walnut)),
       );
@@ -259,7 +257,6 @@ class _PublishPostPageState extends ConsumerState<PublishPostPage> {
             const SizedBox(height: 8),
             Text(label,
                 style: const TextStyle(
-                    fontFamily: 'Poppins',
                     fontWeight: FontWeight.w600,
                     color: AppColors.walnut)),
           ],
@@ -289,7 +286,7 @@ class _PublishPostPageState extends ConsumerState<PublishPostPage> {
                   'nudity, spam or harassment. Inappropriate content may be '
                   'removed and the account suspended.',
                   style: TextStyle(
-                      fontFamily: 'Poppins', fontSize: 12.5, color: AppColors.walnutSoft),
+                      fontSize: 12.5, color: AppColors.walnutSoft),
                 ),
               ),
             ),
@@ -320,7 +317,6 @@ class _SelChip extends StatelessWidget {
         ),
         child: Text(label,
             style: TextStyle(
-                fontFamily: 'Poppins',
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
                 color: selected ? Colors.white : AppColors.walnutSoft)),

@@ -78,9 +78,8 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                       child: Text(
                         s.labelPt,
                         style: TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                           color: selected
                               ? AppColors.paper
                               : AppColors.walnut,

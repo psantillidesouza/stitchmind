@@ -73,9 +73,8 @@ class _Locked extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(context.l10n.tr('premium_chip_label'),
                     style: const TextStyle(
-                        fontFamily: 'Poppins',
                         fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.coral)),
               ],
             ),

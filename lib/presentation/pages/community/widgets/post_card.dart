@@ -58,7 +58,7 @@ class PostCard extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
               child: Text(post.caption,
                   style: const TextStyle(
-                      fontFamily: 'Poppins', fontSize: 14, color: AppColors.walnut)),
+                      fontSize: 14, color: AppColors.walnut)),
             ),
           if (post.yarn != null || post.hook != null) _materials(),
         ],
@@ -92,14 +92,12 @@ class PostCard extends ConsumerWidget {
                 children: [
                   Text(post.author,
                       style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 14,
                           color: AppColors.walnut)),
                   if (_ago(post.createdAt).isNotEmpty)
                     Text(_ago(post.createdAt),
                         style: const TextStyle(
-                            fontFamily: 'Poppins',
                             fontSize: 11.5,
                             color: AppColors.walnutMuted)),
                 ],
@@ -141,7 +139,7 @@ class PostCard extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
       child: Text(parts.join('   '),
           style: const TextStyle(
-              fontFamily: 'Poppins', fontSize: 12.5, color: AppColors.walnutSoft)),
+              fontSize: 12.5, color: AppColors.walnutSoft)),
     );
   }
 
@@ -272,8 +270,7 @@ class PostCard extends ConsumerWidget {
                 alignment: Alignment.centerLeft,
                 child: Text('Why are you reporting?',
                     style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         fontSize: 16,
                         color: AppColors.walnut)),
               ),
@@ -317,7 +314,7 @@ class _TypeBadge extends StatelessWidget {
         const SizedBox(width: 4),
         Text(CommunityMeta.typeLabel(type),
             style: TextStyle(
-                fontFamily: 'Poppins', fontSize: 11.5, fontWeight: FontWeight.w700, color: fg)),
+                fontSize: 11.5, fontWeight: FontWeight.w600, color: fg)),
       ]),
     );
   }
@@ -343,7 +340,6 @@ class _Chip extends StatelessWidget {
         ],
         Text(label,
             style: const TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: AppColors.walnutSoft)),
@@ -372,7 +368,7 @@ class _PillButton extends StatelessWidget {
           const SizedBox(width: 6),
           Text(label,
               style: TextStyle(
-                  fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: color)),
+                  fontWeight: FontWeight.w600, color: color)),
         ]),
       ),
     );

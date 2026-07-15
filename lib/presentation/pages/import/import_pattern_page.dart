@@ -278,7 +278,7 @@ class _ModeToggle extends StatelessWidget {
                     context.l10n.tr(entry.value),
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: mode == entry.key
                           ? Colors.white
                           : AppColors.walnutSoft,
@@ -385,7 +385,7 @@ class _PatternPreview extends StatelessWidget {
           for (final section in pattern.sections) ...[
             Text(section.title,
                 style: const TextStyle(
-                    fontWeight: FontWeight.w700, color: AppColors.coral)),
+                    fontWeight: FontWeight.w600, color: AppColors.coral)),
             const SizedBox(height: 6),
             for (final r in section.rows)
               Padding(
@@ -397,7 +397,7 @@ class _PatternPreview extends StatelessWidget {
                       width: 32,
                       child: Text('${r.row}.',
                           style: const TextStyle(
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               color: AppColors.walnutMuted)),
                     ),
                     Expanded(

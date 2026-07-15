@@ -21,7 +21,7 @@ class UserProfilePage extends ConsumerWidget {
         elevation: 0,
         foregroundColor: AppColors.walnut,
         title: const Text('Profile',
-            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
+            style: TextStyle(fontWeight: FontWeight.w600)),
       ),
       body: profile.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -49,8 +49,7 @@ class UserProfilePage extends ConsumerWidget {
         Center(
           child: Text(p.name,
               style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w600,
                   fontSize: 20,
                   color: AppColors.walnut)),
         ),
@@ -71,7 +70,7 @@ class UserProfilePage extends ConsumerWidget {
             padding: EdgeInsets.only(top: 30),
             child: Text('No posts yet.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.walnutSoft, fontFamily: 'Poppins')),
+                style: TextStyle(color: AppColors.walnutSoft)),
           )
         else
           GridView.count(
@@ -101,13 +100,12 @@ class UserProfilePage extends ConsumerWidget {
       children: [
         Text(value,
             style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 fontSize: 18,
                 color: AppColors.walnut)),
         Text(label,
             style: const TextStyle(
-                fontFamily: 'Poppins', fontSize: 12, color: AppColors.walnutSoft)),
+                fontSize: 12, color: AppColors.walnutSoft)),
       ],
     );
   }
@@ -132,7 +130,7 @@ class UserProfilePage extends ConsumerWidget {
               ref.invalidate(userProfileProvider(userId));
             },
             child: Text(p.isFollowing ? 'Following' : 'Follow',
-                style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
+                style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
         ),
         const SizedBox(width: 12),
@@ -152,7 +150,7 @@ class UserProfilePage extends ConsumerWidget {
             ref.invalidate(userProfileProvider(userId));
           },
           child: Text(p.isBlocked ? 'Unblock' : 'Block',
-              style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
+              style: const TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

@@ -27,7 +27,7 @@ class PatternDetailPage extends ConsumerWidget {
               label: Text(
                 context.l10n.tr('pattern_follow_cta'),
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w700),
+                    color: Colors.white, fontWeight: FontWeight.w600),
               ),
             ),
       body: async.when(
@@ -198,7 +198,6 @@ class _SectionTileState extends State<_SectionTile> {
                         Text(
                           '${s.rows.length} rows',
                           style: const TextStyle(
-                            fontFamily: 'Poppins',
                             fontSize: 11,
                             color: AppColors.walnutMuted,
                             letterSpacing: 0.4,
@@ -247,7 +246,6 @@ class _RowLine extends StatelessWidget {
             child: Text(
               '${row.row}',
               style: const TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.terracotta,

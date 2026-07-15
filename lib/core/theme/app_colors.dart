@@ -77,21 +77,20 @@ class AppText {
   AppText._();
 
   /// Overline/eyebrow: rótulo pequeno com tracking, usado em títulos de seção
-  /// e cursos (ex.: "CONTINUAR DE ONDE PAROU"). Canônico: 11 / w700 / ls 1.2.
+  /// e cursos (ex.: "CONTINUAR DE ONDE PAROU"). Canônico: 11 / w600 / ls 1.2.
+  /// A família tipográfica herda do tema (nativa por plataforma).
   static const eyebrow = TextStyle(
-    fontFamily: 'Poppins',
     fontSize: 11,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     letterSpacing: 1.2,
     height: 1.2,
   );
 
   /// Selo/badge: texto de pílula pequena (Premium, WIP, tipo de post).
-  /// Canônico: 11 / w800 / ls 0.3.
+  /// Canônico: 11 / w600 / ls 0.3.
   static const badge = TextStyle(
-    fontFamily: 'Poppins',
     fontSize: 11,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
     letterSpacing: 0.3,
   );
 }

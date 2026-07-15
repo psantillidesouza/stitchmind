@@ -892,31 +892,20 @@ window.newFullLesson = (courses) => {
     const card = document.createElement("div");
     card.className = "step-card";
     card.style.cssText = "border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px";
+    // Instruções: usa as novas; aulas antigas caem nos mini-passos (título/descrição).
+    const instrText = (data.instructions && data.instructions.length
+      ? data.instructions
+      : (data.substeps || []).map((ss) => ss.title || ss.description).filter(Boolean)
+    ).join("\n");
     card.innerHTML = `
       <div class="row" style="justify-content:space-between"><strong class="step-n">Passo ${idx}</strong>
         <button class="btn danger sm" type="button" onclick="this.closest('.step-card').remove();window._renumSteps&&window._renumSteps()">remover</button></div>
-      <label class="lbl">Título</label><input class="field s-title" value="${esc(data.title)}" />
-      <label class="lbl">Tempo no vídeo da aula (mm:ss, opcional — vira capítulo)</label><input class="field s-time" value="${esc(fmtTime(data.time))}" placeholder="ex.: 2:40" />
-      <label class="lbl">Sub-passos (mini-passos: título + descrição)</label>
-      <div class="substeps-wrap"></div>
-      <button class="btn ghost sm" type="button" data-act="add-substep" style="margin-top:6px">+ mini-passo</button>
-      <label class="lbl" style="margin-top:12px">Total (ex.: 12 pontos)</label><input class="field s-total" value="${esc(data.total)}" />
-      <label class="lbl">Pontos usados</label><textarea class="field s-stitches">${esc(data.stitches_used)}</textarea>
-      <label class="lbl">Imagem do passo (cole uma URL ou envie um arquivo)</label><input class="field s-image" value="${esc(data.image_url)}" />
-      <input type="file" class="s-file" accept="image/*" style="font-size:11px;margin-top:6px" /><span class="s-upst sub" style="font-size:10px;margin-left:8px"></span>`;
+      <label class="lbl">Título * (ex.: Corpo)</label><input class="field s-title" value="${esc(data.title)}" />
+      <label class="lbl">Subtítulo * (ex.: Início)</label><input class="field s-subtitle" value="${esc(data.subtitle)}" />
+      <label class="lbl">Dica (opcional — vira a caixinha 💡 no app)</label><textarea class="field s-tip" rows="2">${esc(data.tip)}</textarea>
+      <label class="lbl">Instruções * (uma por linha, máx. 10 — use *asteriscos* pra negrito no app)</label>
+      <textarea class="field s-instructions" rows="5" placeholder="Usar fio branco&#10;Fazer um anel mágico">${esc(instrText)}</textarea>`;
     stepsWrap.appendChild(card);
-    wireSubsteps(card, data.substeps);
-    // upload da imagem do passo (arquivo do PC → asset)
-    $(".s-file", card).onchange = async (ev) => {
-      const f = ev.target.files[0]; if (!f) return;
-      const st = $(".s-upst", card); st.textContent = "enviando…";
-      try {
-        const asset = await uploadAsset(f);
-        card.dataset.assetId = asset.id;
-        $(".s-image", card).value = "";
-        st.textContent = "enviada ✓";
-      } catch (e) { st.textContent = "erro: " + e.message; }
-    };
   };
   window._renumSteps = () => $$(".step-card .step-n", m).forEach((el, i) => (el.textContent = `Passo ${i + 1}`));
   $("#f-add-step", m).onclick = () => addStep();
@@ -933,15 +922,19 @@ window.newFullLesson = (courses) => {
     }
     newVids.forEach((v, i) => {
       const row = document.createElement("div");
-      row.style.cssText = "display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
+      row.style.cssText = "border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
       row.innerHTML = `
-        <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
-        <input class="field fv-t" maxlength="15" value="${esc(v.title)}" placeholder="Título (15)" style="flex:1;margin:0" />
-        <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(v.filename)}</span>
-        <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
-        <button class="btn ghost sm" data-act="down" type="button" ${i === newVids.length - 1 ? "disabled" : ""}>▼</button>
-        <button class="btn danger sm" data-act="del" type="button">×</button>`;
+        <div style="display:flex;gap:8px;align-items:center">
+          <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
+          <input class="field fv-t" maxlength="15" value="${esc(v.title)}" placeholder="Título (15)" style="flex:1;margin:0" />
+          <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(v.filename)}</span>
+          <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button class="btn ghost sm" data-act="down" type="button" ${i === newVids.length - 1 ? "disabled" : ""}>▼</button>
+          <button class="btn danger sm" data-act="del" type="button">×</button>
+        </div>
+        <textarea class="field fv-d" placeholder="Descrição (aparece embaixo do vídeo no app, opcional)" style="margin-top:6px;font-size:12px" rows="2">${esc(v.description || "")}</textarea>`;
       row.querySelector(".fv-t").oninput = (ev) => { v.title = ev.target.value; };
+      row.querySelector(".fv-d").oninput = (ev) => { v.description = ev.target.value; };
       row.querySelector('[data-act="up"]').onclick = () => {
         [newVids[i - 1], newVids[i]] = [newVids[i], newVids[i - 1]]; drawNewVids();
       };
@@ -968,6 +961,7 @@ window.newFullLesson = (courses) => {
       newVids.push({
         asset_id: asset.id,
         title: $("#fv-title", m).value.trim().slice(0, 15),
+        description: "",
         filename: asset.filename,
       });
       $("#fv-title", m).value = ""; $("#fv-file", m).value = "";
@@ -1011,15 +1005,26 @@ window.newFullLesson = (courses) => {
       const [name, confidence] = l.split("|").map((x) => x.trim());
       return confidence ? { name, confidence } : { name };
     });
-    const steps = $$(".step-card", m).map((c) => ({
-      title: $(".s-title", c).value.trim() || undefined,
-      time: parseTime($(".s-time", c).value),
-      substeps: collectSubsteps(c),
-      total: $(".s-total", c).value.trim() || undefined,
-      stitches_used: $(".s-stitches", c).value.trim() || undefined,
-      image_url: $(".s-image", c).value.trim() || undefined,
-      image_asset_id: c.dataset.assetId || undefined,
-    }));
+    // Título e subtítulo obrigatórios; pelo menos 1 instrução (máx. 10).
+    const badSteps = [];
+    const steps = $$(".step-card", m).map((c, i) => {
+      const sTitle = $(".s-title", c).value.trim();
+      const sSubtitle = $(".s-subtitle", c).value.trim();
+      const instructions = $(".s-instructions", c).value
+        .split("\n").map((x) => x.trim()).filter(Boolean).slice(0, 10);
+      if (!sTitle || !sSubtitle || !instructions.length) badSteps.push(i + 1);
+      return {
+        title: sTitle || undefined,
+        subtitle: sSubtitle || undefined,
+        tip: $(".s-tip", c).value.trim() || undefined,
+        instructions,
+      };
+    });
+    if (badSteps.length) {
+      $("#f-status", m).textContent =
+        `Passo ${badSteps.join(", ")}: preencha Título, Subtítulo e pelo menos 1 instrução.`;
+      return;
+    }
     const payload = {
       title,
       description: $("#f-desc", m).value.trim() || undefined,
@@ -1053,7 +1058,11 @@ window.newFullLesson = (courses) => {
         const v = newVids[i];
         await api(`/admin/lessons/${lesson.id}/blocks`, { method: "POST", body: JSON.stringify({
           type: "video", asset_id: v.asset_id, position: i,
-          content: { title: (v.title || "").trim().slice(0, 15), filename: v.filename },
+          content: {
+            title: (v.title || "").trim().slice(0, 15),
+            description: (v.description || "").trim(),
+            filename: v.filename,
+          },
         }) });
       }
       m.remove(); render("lessons");
@@ -1133,16 +1142,22 @@ window.editFull = async (lessonId) => {
     }
     vids.forEach((b, i) => {
       const row = document.createElement("div");
-      row.style.cssText = "display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
+      row.style.cssText = "border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
       row.innerHTML = `
-        <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
-        <input class="field ev-t" maxlength="15" value="${esc(b.content?.title || "")}" placeholder="Título (15)" style="flex:1;margin:0" />
-        <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(b.content?.filename || "")}</span>
-        <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
-        <button class="btn ghost sm" data-act="down" type="button" ${i === vids.length - 1 ? "disabled" : ""}>▼</button>
-        <button class="btn danger sm" data-act="del" type="button">×</button>`;
+        <div style="display:flex;gap:8px;align-items:center">
+          <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
+          <input class="field ev-t" maxlength="15" value="${esc(b.content?.title || "")}" placeholder="Título (15)" style="flex:1;margin:0" />
+          <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(b.content?.filename || "")}</span>
+          <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button class="btn ghost sm" data-act="down" type="button" ${i === vids.length - 1 ? "disabled" : ""}>▼</button>
+          <button class="btn danger sm" data-act="del" type="button">×</button>
+        </div>
+        <textarea class="field ev-d" placeholder="Descrição (aparece embaixo do vídeo no app, opcional)" style="margin-top:6px;font-size:12px" rows="2">${esc(b.content?.description || "")}</textarea>`;
       row.querySelector(".ev-t").oninput = (ev) => {
         b.content = { ...(b.content || {}), title: ev.target.value };
+      };
+      row.querySelector(".ev-d").oninput = (ev) => {
+        b.content = { ...(b.content || {}), description: ev.target.value };
       };
       row.querySelector('[data-act="up"]').onclick = () => {
         [vids[i - 1], vids[i]] = [vids[i], vids[i - 1]]; drawVids();
@@ -1210,46 +1225,35 @@ window.editFull = async (lessonId) => {
 
   const buildStepContent = (card, n) => {
     const v = (cls) => $(cls, card).value.trim();
-    const substeps = collectSubsteps(card);
     return {
       number: n,
       title: v(".s-title") || null,
-      time: parseTime(v(".s-time")),
-      substeps,
-      total: v(".s-total") || null,
-      stitches_used: v(".s-stitches") || null,
-      image_url: v(".s-image") || null, // URL colada tem prioridade; vazio = usa imagem enviada
+      subtitle: v(".s-subtitle") || null,
+      tip: v(".s-tip") || null,
+      instructions: $(".s-instructions", card).value
+        .split("\n").map((x) => x.trim()).filter(Boolean).slice(0, 10),
     };
   };
 
   const renderCard = (block) => {
     const ct = block.content || {};
-    const preview = ct.image_url || block.url || "";
     const card = document.createElement("div");
     card.className = "step-card";
     card.dataset.id = block.id;
-    card.dataset.assetId = block.asset_id || "";
     card.style.cssText = "border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px";
+    // Instruções: usa as novas; aulas antigas caem nos mini-passos (título/descrição).
+    const instrText = (ct.instructions && ct.instructions.length
+      ? ct.instructions
+      : (ct.substeps || []).map((ss) => ss.title || ss.description).filter(Boolean)
+    ).join("\n");
     card.innerHTML = `
       <div class="row" style="justify-content:space-between"><strong class="step-n"></strong>
         <button class="btn danger sm" type="button" data-act="remove">remover</button></div>
-      <div class="row" style="gap:12px;align-items:flex-start">
-        <div style="width:96px;flex:none">
-          <div class="s-preview" style="width:96px;height:96px;border-radius:8px;background:var(--bg) center/cover no-repeat;border:1px solid var(--line)${preview ? `;background-image:url('${preview.replace(/'/g, "%27")}')` : ""}"></div>
-          <input type="file" class="s-file" accept="image/*" style="font-size:11px;margin-top:6px;width:96px" />
-          <div class="s-upst sub" style="font-size:10px"></div>
-        </div>
-        <div style="flex:1">
-          <label class="lbl">Título</label><input class="field s-title" value="${esc(ct.title)}" />
-        </div>
-      </div>
-      <label class="lbl">Tempo no vídeo da aula (mm:ss, opcional — vira capítulo)</label><input class="field s-time" value="${esc(fmtTime(ct.time))}" placeholder="ex.: 2:40" />
-      <label class="lbl">Sub-passos (mini-passos: título + descrição)</label>
-      <div class="substeps-wrap"></div>
-      <button class="btn ghost sm" type="button" data-act="add-substep" style="margin-top:6px">+ mini-passo</button>
-      <label class="lbl" style="margin-top:12px">Total (ex.: 12 pontos)</label><input class="field s-total" value="${esc(ct.total)}" />
-      <label class="lbl">Pontos usados</label><textarea class="field s-stitches">${esc(ct.stitches_used)}</textarea>
-      <label class="lbl">URL da imagem (ou envie um arquivo acima)</label><input class="field s-image" value="${esc(ct.image_url)}" />`;
+      <label class="lbl">Título * (ex.: Corpo)</label><input class="field s-title" value="${esc(ct.title)}" />
+      <label class="lbl">Subtítulo * (ex.: Início)</label><input class="field s-subtitle" value="${esc(ct.subtitle)}" />
+      <label class="lbl">Dica (opcional — vira a caixinha 💡 no app)</label><textarea class="field s-tip" rows="2">${esc(ct.tip)}</textarea>
+      <label class="lbl">Instruções * (uma por linha, máx. 10 — use *asteriscos* pra negrito no app)</label>
+      <textarea class="field s-instructions" rows="5" placeholder="Usar fio branco&#10;Fazer um anel mágico">${esc(instrText)}</textarea>`;
 
     // remover passo
     $('[data-act="remove"]', card).onclick = async () => {
@@ -1257,21 +1261,7 @@ window.editFull = async (lessonId) => {
       await api(`/admin/blocks/${block.id}`, { method: "DELETE" });
       editFull(lessonId);
     };
-    // upload de imagem do passo (vira WebP no servidor) → anexa ao bloco
-    $(".s-file", card).onchange = async (ev) => {
-      const f = ev.target.files[0]; if (!f) return;
-      const st = $(".s-upst", card); st.textContent = "enviando…";
-      try {
-        const fd = new FormData(); fd.append("file", f);
-        const { asset } = await api("/admin/assets", { method: "POST", body: fd });
-        card.dataset.assetId = asset.id;
-        $(".s-image", card).value = ""; // limpa URL → app usa a imagem enviada
-        $(".s-preview", card).style.backgroundImage = `url('${URL.createObjectURL(f)}')`;
-        st.textContent = "enviada ✓ (salve para aplicar)";
-      } catch (e) { st.textContent = "erro: " + e.message; }
-    };
     stepsWrap.appendChild(card);
-    wireSubsteps(card, ct.substeps);
   };
 
   const renumber = () => $$(".step-card .step-n", m).forEach((el, i) => (el.textContent = `Passo ${i + 1}`));
@@ -1308,11 +1298,19 @@ window.editFull = async (lessonId) => {
       },
     }) });
     const cards = $$(".step-card", m);
+    // Título e subtítulo obrigatórios; pelo menos 1 instrução por passo.
+    const badSteps = [];
+    cards.forEach((card, i) => {
+      const ct = buildStepContent(card, i + 1);
+      if (!ct.title || !ct.subtitle || !ct.instructions.length) badSteps.push(i + 1);
+    });
+    if (badSteps.length) {
+      throw new Error(`Passo ${badSteps.join(", ")}: preencha Título, Subtítulo e pelo menos 1 instrução.`);
+    }
     for (let i = 0; i < cards.length; i++) {
       const card = cards[i];
       await api(`/admin/blocks/${card.dataset.id}`, { method: "PATCH", body: JSON.stringify({
         content: buildStepContent(card, i + 1),
-        asset_id: card.dataset.assetId || null,
         position: i,
       }) });
     }
@@ -1398,16 +1396,22 @@ window.editVideos = async (lessonId, title) => {
     if (!vids.length) { list.innerHTML = `<div class="empty">nenhum vídeo ainda</div>`; return; }
     vids.forEach((b, i) => {
       const row = document.createElement("div");
-      row.style.cssText = "display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
+      row.style.cssText = "border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px";
       row.innerHTML = `
-        <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
-        <input class="field v-t" maxlength="15" value="${esc(b.content?.title || "")}" placeholder="Título (15)" style="flex:1;margin:0" />
-        <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(b.content?.filename || "")}</span>
-        <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
-        <button class="btn ghost sm" data-act="down" type="button" ${i === vids.length - 1 ? "disabled" : ""}>▼</button>
-        <button class="btn danger sm" data-act="del" type="button">×</button>`;
+        <div style="display:flex;gap:8px;align-items:center">
+          <strong style="width:22px;text-align:center;flex:none">${i + 1}</strong>
+          <input class="field v-t" maxlength="15" value="${esc(b.content?.title || "")}" placeholder="Título (15)" style="flex:1;margin:0" />
+          <span class="sub" style="font-size:10px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none">${esc(b.content?.filename || "")}</span>
+          <button class="btn ghost sm" data-act="up" type="button" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button class="btn ghost sm" data-act="down" type="button" ${i === vids.length - 1 ? "disabled" : ""}>▼</button>
+          <button class="btn danger sm" data-act="del" type="button">×</button>
+        </div>
+        <textarea class="field v-d" placeholder="Descrição (aparece embaixo do vídeo no app, opcional)" style="margin-top:6px;font-size:12px" rows="2">${esc(b.content?.description || "")}</textarea>`;
       row.querySelector(".v-t").oninput = (ev) => {
         b.content = { ...(b.content || {}), title: ev.target.value };
+      };
+      row.querySelector(".v-d").oninput = (ev) => {
+        b.content = { ...(b.content || {}), description: ev.target.value };
       };
       row.querySelector('[data-act="up"]').onclick = () => {
         [vids[i - 1], vids[i]] = [vids[i], vids[i - 1]]; draw();

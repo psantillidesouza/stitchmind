@@ -74,8 +74,11 @@ final coursesProvider = FutureProvider<List<Course>>((ref) {
   return ref.watch(lessonRepositoryProvider).courses();
 });
 
+/// autoDispose: o detalhe é descartado ao sair da aula e rebuscado na API a
+/// cada abertura — sem isso, edições feitas no painel só apareciam depois de
+/// fechar e reabrir o app (o cache durava a sessão inteira).
 final lessonDetailProvider =
-    FutureProvider.family<LessonDetail, String>((ref, slug) {
+    FutureProvider.autoDispose.family<LessonDetail, String>((ref, slug) {
   return ref.watch(lessonRepositoryProvider).lesson(slug);
 });
 

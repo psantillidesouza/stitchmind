@@ -158,7 +158,6 @@ class _Tag extends StatelessWidget {
       child: Text(
         label,
         style: const TextStyle(
-          fontFamily: 'Poppins',
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: AppColors.walnut,

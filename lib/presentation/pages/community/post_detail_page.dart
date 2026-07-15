@@ -60,7 +60,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         elevation: 0,
         foregroundColor: AppColors.walnut,
         title: const Text('Post',
-            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
+            style: TextStyle(fontWeight: FontWeight.w600)),
       ),
       body: Column(
         children: [
@@ -73,8 +73,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   padding: EdgeInsets.fromLTRB(20, 4, 20, 8),
                   child: Text('Comments',
                       style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 16,
                           color: AppColors.walnut)),
                 ),
@@ -117,9 +116,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       ),
       title: Text(cm.author,
           style: const TextStyle(
-              fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 13)),
+              fontWeight: FontWeight.w600, fontSize: 13)),
       subtitle: Text(cm.body,
-          style: const TextStyle(fontFamily: 'Poppins', color: AppColors.walnut)),
+          style: const TextStyle(color: AppColors.walnut)),
       trailing: cm.isMine
           ? IconButton(
               icon: const Icon(Icons.delete_outline_rounded,

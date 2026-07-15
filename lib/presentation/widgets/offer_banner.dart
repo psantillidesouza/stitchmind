@@ -122,9 +122,8 @@ class OfferBanner extends StatelessWidget {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  fontFamily: 'Poppins',
                                   fontSize: 17,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w600,
                                   height: 1.1,
                                   color: AppColors.walnut)),
                           const SizedBox(height: 3),
@@ -132,7 +131,6 @@ class OfferBanner extends StatelessWidget {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                  fontFamily: 'Poppins',
                                   fontSize: 12.5,
                                   height: 1.3,
                                   fontWeight: FontWeight.w600,
@@ -164,9 +162,8 @@ class OfferBanner extends StatelessWidget {
                                   Text(
                                     cta ?? l10n.tr('home_offer_cta'),
                                     style: const TextStyle(
-                                      fontFamily: 'Poppins',
                                       fontSize: 13,
-                                      fontWeight: FontWeight.w800,
+                                      fontWeight: FontWeight.w600,
                                       color: AppColors.paper,
                                     ),
                                   ),

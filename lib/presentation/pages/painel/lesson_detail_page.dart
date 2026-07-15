@@ -9,7 +9,7 @@ import '../../providers/platform_providers.dart';
 import '../../providers/recent_lessons_provider.dart';
 import '../../widgets/cover_placeholder.dart';
 import '../../widgets/gradient_bg.dart';
-import '../../widgets/lesson_video.dart';
+import '../../widgets/lesson_feedback_sheet.dart';
 import '../../widgets/premium_gate.dart';
 import '../../widgets/synced_video.dart';
 import '../ferramentas/chat_page.dart';
@@ -174,7 +174,7 @@ class _LessonBodyState extends ConsumerState<_LessonBody> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _LessonFeedbackSheet(lesson: widget.detail.lesson),
+      builder: (_) => LessonFeedbackSheet(lesson: widget.detail.lesson),
     );
   }
 
@@ -200,10 +200,7 @@ class _LessonBodyState extends ConsumerState<_LessonBody> {
     if (videos.isNotEmpty) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => LessonVideosPage(
-            lessonTitle: l.title,
-            videos: videos,
-          ),
+          builder: (_) => LessonVideosPage(lesson: l, videos: videos),
         ),
       );
       return;
@@ -375,158 +372,6 @@ class _LessonBodyState extends ConsumerState<_LessonBody> {
   }
 }
 
-// ─── Bottom sheet de feedback: "Gostei disso" + "Mais sugestões" ────
-// Sobe de baixo pra cima até a metade da tela. O like e a sugestão são
-// gravados no servidor (tabela feedback, via POST /v1/feedback).
-class _LessonFeedbackSheet extends ConsumerStatefulWidget {
-  const _LessonFeedbackSheet({required this.lesson});
-  final Lesson lesson;
-
-  @override
-  ConsumerState<_LessonFeedbackSheet> createState() =>
-      _LessonFeedbackSheetState();
-}
-
-class _LessonFeedbackSheetState extends ConsumerState<_LessonFeedbackSheet> {
-  final _commentCtrl = TextEditingController();
-  bool _showSuggestion = false;
-  bool _sending = false;
-
-  @override
-  void dispose() {
-    _commentCtrl.dispose();
-    super.dispose();
-  }
-
-  // 1 like e 1 comentário por usuário (o servidor deduplica; comentário
-  // novo substitui o anterior).
-  Future<void> _send({required String kind, String? comment}) async {
-    setState(() => _sending = true);
-    await ref.read(apiClientProvider).postSilent(
-      '/v1/lessons/${widget.lesson.id}/feedback',
-      {
-        'kind': kind,
-        if (comment != null && comment.isNotEmpty) 'comment': comment,
-      },
-    );
-    if (!mounted) return;
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.tr('lesson_feedback_thanks'))),
-    );
-  }
-
-  // Botões brancos do sheet, com texto em peso normal (sem bold).
-  static final _whiteBtnStyle = OutlinedButton.styleFrom(
-    minimumSize: const Size.fromHeight(54),
-    backgroundColor: Colors.white,
-    foregroundColor: AppColors.walnut,
-    side: const BorderSide(color: AppColors.linen),
-    textStyle: const TextStyle(
-      fontFamily: 'Poppins',
-      fontSize: 15,
-      fontWeight: FontWeight.w500,
-    ),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final half = MediaQuery.of(context).size.height * 0.5;
-    final keyboard = MediaQuery.of(context).viewInsets.bottom;
-
-    return Padding(
-      // Sobe junto com o teclado quando o campo de sugestão está aberto.
-      padding: EdgeInsets.only(bottom: keyboard),
-      child: Container(
-        height: half,
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          color: AppColors.paper,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Alça do sheet
-            Center(
-              child: Container(
-                width: 44,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppColors.linen,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              widget.lesson.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 24),
-            // ── Gostei disso ──
-            OutlinedButton.icon(
-              onPressed: _sending ? null : () => _send(kind: 'like'),
-              icon: const Icon(Icons.thumb_up_outlined, size: 20),
-              label: Text(context.l10n.tr('lesson_like_button')),
-              style: _whiteBtnStyle,
-            ),
-            const SizedBox(height: 12),
-            // ── Mais sugestões ──
-            if (!_showSuggestion)
-              OutlinedButton.icon(
-                onPressed: _sending
-                    ? null
-                    : () => setState(() => _showSuggestion = true),
-                icon: const Icon(Icons.edit_note_rounded, size: 20),
-                label: Text(context.l10n.tr('lesson_suggest_button')),
-                style: _whiteBtnStyle,
-              )
-            else ...[
-              TextField(
-                controller: _commentCtrl,
-                autofocus: true,
-                maxLength: 120,
-                minLines: 2,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: context.l10n.tr('lesson_suggest_hint'),
-                  filled: true,
-                  fillColor: AppColors.card,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: _sending
-                    ? null
-                    : () {
-                        final text = _commentCtrl.text.trim();
-                        if (text.isEmpty) return;
-                        _send(kind: 'comment', comment: text);
-                      },
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                child: Text(_sending
-                    ? '…'
-                    : context.l10n.tr('lesson_suggest_send')),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ─── Ficha técnica: fio, cor principal, agulha e materiais ──────────
 class _LessonMetaCard extends StatelessWidget {
   const _LessonMetaCard({required this.lesson});
@@ -584,14 +429,13 @@ class _LessonMetaCard extends StatelessWidget {
                           const Text('•',
                               style: TextStyle(
                                   color: AppColors.coral,
-                                  fontWeight: FontWeight.w800)),
+                                  fontWeight: FontWeight.w600)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(mat,
                                 style: const TextStyle(
-                                    fontFamily: 'Poppins',
                                     fontSize: 13.5,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     height: 1.4,
                                     color: AppColors.walnut)),
                           ),
@@ -664,15 +508,13 @@ class _MetaRow extends StatelessWidget {
   }
 
   static const _labelStyle = TextStyle(
-    fontFamily: 'Poppins',
     fontSize: 13,
     fontWeight: FontWeight.w600,
     color: AppColors.walnutMuted,
   );
   static const _valueStyle = TextStyle(
-    fontFamily: 'Poppins',
     fontSize: 13.5,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     color: AppColors.walnut,
   );
 }
@@ -719,7 +561,6 @@ class _InfoCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppColors.walnutMuted,
@@ -735,9 +576,8 @@ class _InfoCard extends StatelessWidget {
                   value,
                   maxLines: 1,
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
                     fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.walnut,
                   ),
                 ),
@@ -829,9 +669,8 @@ class _ActionBtn extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
               ),
@@ -856,6 +695,10 @@ class _LessonGuidePage extends ConsumerStatefulWidget {
 class _LessonGuidePageState extends ConsumerState<_LessonGuidePage> {
   int _tab = 0; // 0 = Aula, 1 = Chat com IA
   int _step = 0;
+  // Voto local por passo (blockId → like|dislike); o servidor guarda 1 por usuário.
+  final Map<String, String> _votes = {};
+  // Mensagem pré-preenchida no chat (fluxo "Preciso de Ajuda").
+  String? _chatPrefill;
 
   // Bypass de teste do plano na tab "Chat com IA" (true = libera sem plano).
   static const _chatBypassForTesting = false;
@@ -870,6 +713,31 @@ class _LessonGuidePageState extends ConsumerState<_LessonGuidePage> {
       }
     }
     setState(() => _tab = i);
+  }
+
+  /// Like/dislike do passo: atualização otimista + upsert no servidor
+  /// (votar de novo troca o voto).
+  void _vote(LessonBlock step, String vote) {
+    setState(() => _votes[step.id] = vote);
+    ref.read(apiClientProvider).postSilent(
+      '/v1/blocks/${step.id}/feedback',
+      {'vote': vote},
+    );
+  }
+
+  /// "Preciso de Ajuda": muda pra tab do chat com a mensagem pronta
+  /// (com as instruções do passo atual). O plano é exigido só no ENVIO.
+  void _openHelp(LessonBlock step) {
+    final instr = step.stepInstructions;
+    // Sem a marcação *negrito* na mensagem do chat.
+    final resumo = (instr.isNotEmpty
+            ? instr.join(', ')
+            : (step.stepSubtitle.isNotEmpty ? step.stepSubtitle : step.stepTitle))
+        .replaceAll('*', '');
+    setState(() {
+      _chatPrefill = context.l10n.tr('chat_help_prefill', {'x': resumo});
+      _tab = 1; // entra no chat mesmo sem plano; a paywall aparece no envio
+    });
   }
 
   @override
@@ -923,18 +791,57 @@ class _LessonGuidePageState extends ConsumerState<_LessonGuidePage> {
               ),
 
               Expanded(
-                child: _tab == 0
-                    ? _StepPager(
-                        steps: steps,
-                        otherBlocks: otherBlocks,
-                        current: _step,
-                        onChange: (i) => setState(() => _step = i),
-                        onMarkCompleted: () {
-                          widget.onMarkCompleted();
-                          Navigator.of(context).pop();
-                        },
-                      )
-                    : const ChatView(),
+                // Troca de tab com slide lateral: indo pro chat, a tela nova
+                // entra da direita; voltando pra aula, entra da esquerda.
+                child: ClipRect(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 480),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    layoutBuilder: (currentChild, previousChildren) => Stack(
+                      alignment: Alignment.topCenter,
+                      children: [
+                        ...previousChildren,
+                        if (currentChild != null) currentChild,
+                      ],
+                    ),
+                    transitionBuilder: (child, anim) {
+                      final dir = _tab == 1 ? 1.0 : -1.0;
+                      final incoming = child.key == ValueKey(_tab);
+                      final begin = incoming
+                          ? Offset(0.3 * dir, 0)
+                          : Offset(-0.3 * dir, 0);
+                      return FadeTransition(
+                        opacity: anim,
+                        child: SlideTransition(
+                          position:
+                              Tween<Offset>(begin: begin, end: Offset.zero)
+                                  .animate(anim),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: KeyedSubtree(
+                      key: ValueKey(_tab),
+                      child: _tab == 0
+                          ? _StepPager(
+                              steps: steps,
+                              otherBlocks: otherBlocks,
+                              current: _step,
+                              votes: _votes,
+                              onVote: _vote,
+                              onHelp: _openHelp,
+                              onChange: (i) => setState(() => _step = i),
+                              onMarkCompleted: () {
+                                widget.onMarkCompleted();
+                                Navigator.of(context).pop();
+                              },
+                            )
+                          : ChatView(
+                              prefill: _chatPrefill, gateOnSend: true),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -973,9 +880,8 @@ class _GuideTabs extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: isSel ? Colors.white : AppColors.walnutSoft,
                     ),
                   ),
@@ -1010,12 +916,18 @@ class _StepPager extends StatefulWidget {
     required this.steps,
     required this.otherBlocks,
     required this.current,
+    required this.votes,
+    required this.onVote,
+    required this.onHelp,
     required this.onChange,
     required this.onMarkCompleted,
   });
   final List<LessonBlock> steps;
   final List<LessonBlock> otherBlocks;
   final int current;
+  final Map<String, String> votes; // blockId → like|dislike
+  final void Function(LessonBlock, String) onVote;
+  final void Function(LessonBlock) onHelp;
   final void Function(int) onChange;
   final VoidCallback onMarkCompleted;
 
@@ -1097,9 +1009,8 @@ class _StepPagerState extends State<_StepPager> {
                       '${current + 1}',
                       key: ValueKey(current),
                       style: const TextStyle(
-                        fontFamily: 'Poppins',
                         fontSize: 22,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.coral,
                       ),
                     ),
@@ -1107,9 +1018,8 @@ class _StepPagerState extends State<_StepPager> {
                   Text(
                     '/$total',
                     style: const TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.walnutMuted,
                     ),
                   ),
@@ -1123,7 +1033,7 @@ class _StepPagerState extends State<_StepPager> {
         Expanded(
           child: ClipRect(
             child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 320),
+              duration: const Duration(milliseconds: 450),
               switchInCurve: Curves.easeOutCubic,
               switchOutCurve: Curves.easeInCubic,
               layoutBuilder: (currentChild, previousChildren) => Stack(
@@ -1154,7 +1064,18 @@ class _StepPagerState extends State<_StepPager> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _StepCard(block: steps[current], index: current + 1),
+                    // Título do passo, fora do card (ex.: "Corpo").
+                    if (steps[current].stepTitle.isNotEmpty) ...[
+                      Text(steps[current].stepTitle,
+                          style: Theme.of(context).textTheme.displayMedium),
+                      const SizedBox(height: 14),
+                    ],
+                    _GuideStepCard(
+                      block: steps[current],
+                      vote: widget.votes[steps[current].id],
+                      onVote: (v) => widget.onVote(steps[current], v),
+                      onHelp: () => widget.onHelp(steps[current]),
+                    ),
                     // blocos de texto soltos aparecem junto do último passo
                     if (isLast && widget.otherBlocks.isNotEmpty) ...[
                       const SizedBox(height: 16),
@@ -1283,128 +1204,6 @@ class _RoundBtn extends StatelessWidget {
   }
 }
 
-// ─── Card de passo (foto + número + instrução) ──────────────────────
-class _StepCard extends StatelessWidget {
-  const _StepCard({required this.block, required this.index});
-  final LessonBlock block;
-  final int index;
-  @override
-  Widget build(BuildContext context) {
-    final n = block.stepNumber > 0 ? block.stepNumber : index;
-    final subs = block.stepSubsteps;
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        boxShadow: softShadow(0.06),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Topo: foto 16:9 do passo (o vídeo agora é por mini-passo).
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: block.stepImageUrl != null
-                ? Image.network(
-                    block.stepImageUrl!,
-                    fit: BoxFit.cover,
-                    // Fade-in quando a imagem termina de carregar (se já veio
-                    // do cache, aparece direto, sem piscar).
-                    frameBuilder: (_, child, frame, wasSyncLoaded) {
-                      if (wasSyncLoaded) return child;
-                      return AnimatedOpacity(
-                        opacity: frame == null ? 0 : 1,
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeOut,
-                        child: child,
-                      );
-                    },
-                    errorBuilder: (_, __, ___) => _imgPh(),
-                  )
-                : _imgPh(),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 30,
-                      height: 30,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                          color: AppColors.coral, shape: BoxShape.circle),
-                      child: Text('$n',
-                          style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white)),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        block.stepTitle.isNotEmpty
-                            ? block.stepTitle
-                            : 'Passo $n',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                  ],
-                ),
-                if (block.stepInstruction.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(block.stepInstruction,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(height: 1.5)),
-                ],
-                if (block.stepTip.isNotEmpty) ...[
-                  const SizedBox(height: 14),
-                  _StepTip(text: block.stepTip),
-                ],
-                if (subs.isNotEmpty) ...[
-                  const SizedBox(height: 14),
-                  ...subs.asMap().entries.map(
-                        (e) => _Substep(
-                          n: e.key + 1,
-                          title: e.value.title,
-                          description: e.value.description,
-                          videoUrl: e.value.videoUrl,
-                          videoPoster: e.value.videoPoster,
-                        ),
-                      ),
-                ],
-                if (block.stepTotal.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text('Total: ${block.stepTotal}',
-                      style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.walnutMuted)),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _imgPh() => Container(
-        color: AppColors.peach,
-        child: const Center(
-            child: Icon(Icons.image_outlined,
-                size: 40, color: AppColors.walnutMuted)),
-      );
-}
-
 // ─── Dica do passo (caixa 💡) ───────────────────────────────────────
 class _StepTip extends StatelessWidget {
   const _StepTip({required this.text});
@@ -1415,7 +1214,7 @@ class _StepTip extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.peach.withValues(alpha: 0.55),
+        color: const Color(0xFFEFEFEF), // cinza claro
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -1436,78 +1235,170 @@ class _StepTip extends StatelessWidget {
   }
 }
 
-// ─── Mini-passo: card com VÍDEO próprio + número + título + descrição ───
-class _Substep extends StatelessWidget {
-  const _Substep({
-    required this.n,
-    required this.title,
-    required this.description,
-    this.videoUrl = '',
-    this.videoPoster,
+// ─── Card do passo do guia: subtítulo + dica + instruções + ações ──
+class _GuideStepCard extends StatelessWidget {
+  const _GuideStepCard({
+    required this.block,
+    required this.vote,
+    required this.onVote,
+    required this.onHelp,
   });
-  final int n;
-  final String title;
-  final String description;
-  final String videoUrl;
-  final String? videoPoster;
+  final LessonBlock block;
+  final String? vote; // like | dislike | null
+  final void Function(String) onVote;
+  final VoidCallback onHelp;
 
   @override
   Widget build(BuildContext context) {
-    final base = Theme.of(context).textTheme.bodyLarge;
+    final instructions = block.stepInstructions;
     return Container(
-      margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(AppRadii.card),
-        border: Border.all(color: AppColors.linen.withValues(alpha: 0.7)),
+        boxShadow: softShadow(0.06),
       ),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (videoUrl.isNotEmpty) ...[
-            LessonVideo(
-                url: videoUrl, posterUrl: videoPoster, borderRadius: 12),
-            const SizedBox(height: 10),
+          // Subtítulo (ex.: "Início")
+          if (block.stepSubtitle.isNotEmpty)
+            Text(block.stepSubtitle,
+                style: Theme.of(context).textTheme.titleLarge),
+          // Dica (caixinha 💡)
+          if (block.stepTip.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            _StepTip(text: block.stepTip),
           ],
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 26,
-                height: 26,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                    color: AppColors.peach, shape: BoxShape.circle),
-                child: Text('$n',
-                    style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.walnutSoft)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
+          // Instruções numeradas
+          if (instructions.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            for (var i = 0; i < instructions.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (title.isNotEmpty)
-                      Text(title,
-                          style: base?.copyWith(
-                              height: 1.35, fontWeight: FontWeight.w700)),
-                    if (description.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(top: title.isNotEmpty ? 2 : 0),
-                        child: Text(description,
-                            style: base?.copyWith(
-                                height: 1.4, color: AppColors.walnutSoft)),
+                    // Bolinha alinhada verticalmente com a 1ª linha do texto.
+                    Container(
+                      width: 18,
+                      height: 18,
+                      margin: const EdgeInsets.only(top: 2),
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEFEFEF), // cinza claro
+                        shape: BoxShape.circle,
                       ),
+                      child: Text('${i + 1}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.walnutSoft,
+                          )),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text.rich(
+                        _boldMarkup(
+                          instructions[i],
+                          Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(height: 1.4),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
+              ),
+          ],
+          const SizedBox(height: 6),
+          // Ações: like/dislike (esq.) + "Preciso de Ajuda" (dir.)
+          Row(
+            children: [
+              _VoteBtn(
+                icon: Icons.thumb_up_outlined,
+                selected: vote == 'like',
+                onTap: () => onVote('like'),
+              ),
+              const SizedBox(width: 10),
+              _VoteBtn(
+                icon: Icons.thumb_down_outlined,
+                selected: vote == 'dislike',
+                onTap: () => onVote('dislike'),
+              ),
+              const Spacer(),
+              OutlinedButton(
+                onPressed: onHelp,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.coral,
+                  side: const BorderSide(color: AppColors.coral, width: 1.2),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24)),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 12),
+                  textStyle: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: Text(context.l10n.tr('lesson_help_button')),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Converte a marcação `*texto*` (do painel) em negrito.
+/// Ex.: "*De um nó* no fio vermelho" → "**De um nó** no fio vermelho".
+TextSpan _boldMarkup(String text, TextStyle? base) {
+  final spans = <TextSpan>[];
+  final re = RegExp(r'\*([^*]+)\*');
+  var last = 0;
+  for (final m in re.allMatches(text)) {
+    if (m.start > last) spans.add(TextSpan(text: text.substring(last, m.start)));
+    spans.add(TextSpan(
+      text: m.group(1),
+      style: const TextStyle(fontWeight: FontWeight.w600),
+    ));
+    last = m.end;
+  }
+  if (last < text.length) spans.add(TextSpan(text: text.substring(last)));
+  return TextSpan(style: base, children: spans);
+}
+
+// Botão redondo de voto (like/dislike) do passo.
+class _VoteBtn extends StatelessWidget {
+  const _VoteBtn({
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppColors.coralSoft : Colors.white,
+      shape: CircleBorder(
+        side: BorderSide(
+            color: selected ? AppColors.coral : AppColors.linen,
+            width: selected ? 1.4 : 1),
+      ),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Icon(icon,
+              size: 20,
+              color: selected ? AppColors.coral : AppColors.walnutSoft),
+        ),
       ),
     );
   }

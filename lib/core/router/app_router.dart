@@ -82,9 +82,23 @@ GoRouter createRouter({
       GoRoute(
         parentNavigatorKey: _rootKey,
         path: '/paywall',
-        pageBuilder: (_, state) => const NoTransitionPage(
+        // Surge de baixo pra cima (estilo bottom sheet de página inteira).
+        pageBuilder: (_, state) => CustomTransitionPage(
           name: 'paywall',
-          child: PaywallGate(),
+          child: const PaywallGate(),
+          transitionDuration: const Duration(milliseconds: 600),
+          reverseTransitionDuration: const Duration(milliseconds: 480),
+          transitionsBuilder: (_, anim, __, child) => SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: anim,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            )),
+            child: child,
+          ),
         ),
       ),
       GoRoute(

@@ -24,9 +24,8 @@ class AppPill extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          fontFamily: 'Poppins',
           fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
           color: foreground ?? AppColors.walnut,
         ),
       ),
@@ -56,7 +55,6 @@ class AppMetaChip extends StatelessWidget {
         const SizedBox(width: 6),
         Text(label,
             style: const TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.walnut)),

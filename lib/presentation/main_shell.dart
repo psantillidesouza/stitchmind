@@ -154,9 +154,8 @@ class _FloatingNav extends StatelessWidget {
                         const SizedBox(height: 3),
                         Text(context.l10n.tr(t.label),
                             style: TextStyle(
-                              fontFamily: 'Poppins',
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               color: active ? AppColors.coral : AppColors.walnutMuted,
                             )),
                       ],

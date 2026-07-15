@@ -67,7 +67,6 @@ class StitchDetailPage extends ConsumerWidget {
                         Text(
                           stitch.abbrev,
                           style: const TextStyle(
-                            fontFamily: 'Poppins',
                             fontSize: 64,
                             fontWeight: FontWeight.w600,
                             color: AppColors.walnut,
@@ -97,7 +96,6 @@ class StitchDetailPage extends ConsumerWidget {
                               Text(
                                 'vídeo em breve',
                                 style: TextStyle(
-                                  fontFamily: 'Poppins',
                                   fontSize: 11,
                                   color: AppColors.walnutSoft,
                                   letterSpacing: 0.4,
@@ -188,7 +186,6 @@ class _Step extends StatelessWidget {
             child: Text(
               '$index',
               style: const TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.paper,

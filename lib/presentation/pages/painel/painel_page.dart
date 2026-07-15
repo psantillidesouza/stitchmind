@@ -254,7 +254,6 @@ class _ErrorCard extends StatelessWidget {
         children: [
           const Text('Não consegui carregar as aulas',
               style: TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.terracottaDeep)),

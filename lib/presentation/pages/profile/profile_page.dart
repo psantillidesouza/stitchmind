@@ -37,7 +37,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               decoration: const InputDecoration(
                 hintText: 'http://192.168.1.100:8000',
                 hintStyle: TextStyle(
-                  fontFamily: 'Poppins',
                   color: AppColors.walnutMuted,
                 ),
                 border: OutlineInputBorder(),
@@ -107,7 +106,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   child: const Text(
                     'P',
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
                       color: AppColors.paper,

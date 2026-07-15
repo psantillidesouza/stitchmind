@@ -97,7 +97,6 @@ class SyncedVideo extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text('${chapters.length} capítulos',
                             style: const TextStyle(
-                                fontFamily: 'Poppins',
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white)),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_fonts.dart';
 
 class AppTheme {
   AppTheme._();
@@ -19,19 +20,19 @@ class AppTheme {
         error: AppColors.coralDeep,
       ),
       textTheme: _textTheme(AppColors.walnut, AppColors.walnutSoft),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: 'Poppins',
+          fontFamily: AppFonts.family,
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.walnut,
           letterSpacing: -0.3,
         ),
-        iconTheme: IconThemeData(color: AppColors.walnut),
+        iconTheme: const IconThemeData(color: AppColors.walnut),
       ),
       cardTheme: CardThemeData(
         color: AppColors.card,
@@ -56,10 +57,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadii.button),
           ),
-          textStyle: const TextStyle(
-            fontFamily: 'Poppins',
+          textStyle: TextStyle(
+            fontFamily: AppFonts.family,
             fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             letterSpacing: -0.1,
           ),
         ),
@@ -77,17 +78,17 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.linen.withValues(alpha: 0.5),
         selectedColor: AppColors.terracotta,
-        labelStyle: const TextStyle(
-          fontFamily: 'Poppins',
+        labelStyle: TextStyle(
+          fontFamily: AppFonts.family,
           fontSize: 13,
           color: AppColors.walnut,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
         ),
-        secondaryLabelStyle: const TextStyle(
-          fontFamily: 'Poppins',
+        secondaryLabelStyle: TextStyle(
+          fontFamily: AppFonts.family,
           fontSize: 13,
           color: AppColors.paper,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
         ),
         side: BorderSide.none,
         shape: RoundedRectangleBorder(
@@ -95,20 +96,20 @@ class AppTheme {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
-      navigationBarTheme: const NavigationBarThemeData(
+      navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.paper,
         elevation: 0,
         height: 68,
         indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStatePropertyAll(
           TextStyle(
-            fontFamily: 'Poppins',
+            fontFamily: AppFonts.family,
             fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w400,
             color: AppColors.walnutMuted,
           ),
         ),
-        iconTheme: WidgetStatePropertyAll(
+        iconTheme: const WidgetStatePropertyAll(
           IconThemeData(color: AppColors.walnutMuted, size: 24),
         ),
       ),
@@ -130,10 +131,11 @@ class AppTheme {
   }
 
   static TextTheme _textTheme(Color primary, Color secondary) {
+    final family = AppFonts.family;
     return TextTheme(
-      // ── Display & headlines: Poppins (peso 600, tracking negativo) ───
+      // ── Display & headlines: títulos (peso 600, tracking negativo) ───
       displayLarge: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 40,
         fontWeight: FontWeight.w600,
         height: 1.05,
@@ -141,7 +143,7 @@ class AppTheme {
         color: primary,
       ),
       displayMedium: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 31,
         fontWeight: FontWeight.w600,
         height: 1.08,
@@ -149,7 +151,7 @@ class AppTheme {
         color: primary,
       ),
       headlineLarge: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 25,
         fontWeight: FontWeight.w600,
         height: 1.14,
@@ -157,7 +159,7 @@ class AppTheme {
         color: primary,
       ),
       headlineMedium: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 21,
         fontWeight: FontWeight.w600,
         height: 1.18,
@@ -165,41 +167,45 @@ class AppTheme {
         color: primary,
       ),
       titleLarge: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 17,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         color: primary,
         letterSpacing: -0.2,
       ),
       titleMedium: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 15,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
         color: primary,
       ),
+      // ── Corpo & labels: texto (peso 400) ─────────────────────────────
       bodyLarge: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 15,
+        fontWeight: FontWeight.w400,
         height: 1.5,
         color: primary,
       ),
       bodyMedium: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 14,
+        fontWeight: FontWeight.w400,
         height: 1.5,
         color: secondary,
       ),
       bodySmall: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 12,
+        fontWeight: FontWeight.w400,
         height: 1.4,
         color: secondary,
         letterSpacing: 0.1,
       ),
       labelLarge: TextStyle(
-        fontFamily: 'Poppins',
+        fontFamily: family,
         fontSize: 13,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w400,
         color: primary,
       ),
     );

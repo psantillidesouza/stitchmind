@@ -60,8 +60,7 @@ class Pager extends StatelessWidget {
                 child: Center(
                   child: Text('…',
                       style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.walnutMuted)),
                 ),
               )
@@ -89,9 +88,8 @@ class Pager extends StatelessWidget {
         ),
         child: Text('$n',
             style: TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 14,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: active ? AppColors.paper : AppColors.walnutSoft)),
       ),
     );

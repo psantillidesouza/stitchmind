@@ -253,7 +253,6 @@ class _Input extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(
-          fontFamily: 'Poppins',
           color: AppColors.walnutMuted,
         ),
         filled: true,
@@ -315,7 +314,6 @@ class _TechCard extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontFamily: 'Poppins',
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: selected ? AppColors.paper : AppColors.walnut,

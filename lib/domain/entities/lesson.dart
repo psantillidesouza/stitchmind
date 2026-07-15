@@ -164,8 +164,10 @@ class LessonBlock {
   String get text => (content['text'] as String?) ?? '';
   String get filename => (content['filename'] as String?) ?? '';
 
-  // Título curto do vídeo (type == 'video', aba Vídeo do app).
+  // Título curto e descrição do vídeo (type == 'video', aba Vídeo do app).
   String get videoTitle => ((content['title'] as String?) ?? '').trim();
+  String get videoDescription =>
+      ((content['description'] as String?) ?? '').trim();
 
   // Campos de passo (type == 'step')
   int get stepNumber => (content['number'] as num?)?.toInt() ?? 0;
@@ -177,6 +179,26 @@ class LessonBlock {
   // Sub-passos numerados + dica + total (modelo rico do passo)
   String get stepTip => (content['tip'] as String?) ?? '';
   String get stepTotal => (content['total'] as String?) ?? '';
+  // Modelo novo do passo: subtítulo + lista de instruções (máx. 10).
+  String get stepSubtitle => ((content['subtitle'] as String?) ?? '').trim();
+
+  /// Instruções numeradas do passo. Aulas antigas (sem o campo) caem nos
+  /// mini-passos: o título (ou a descrição) de cada um vira uma instrução.
+  List<String> get stepInstructions {
+    final raw = content['instructions'];
+    if (raw is List) {
+      final list = raw
+          .whereType<String>()
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (list.isNotEmpty) return list;
+    }
+    return stepSubsteps
+        .map((s) => s.title.isNotEmpty ? s.title : s.description)
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
 
   /// Sub-passos (mini-passos): cada um com [title], [description] e seu PRÓPRIO
   /// vídeo ([videoUrl]/[videoPoster], resolvidos pelo backend). Tolerante a

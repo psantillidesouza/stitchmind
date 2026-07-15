@@ -51,7 +51,6 @@ class ConfidenceBar extends StatelessWidget {
                 Text(
                   '${(clamped * 100).round()}%',
                   style: TextStyle(
-                    fontFamily: 'Poppins',
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: _color,
@@ -81,9 +80,8 @@ class ConfidenceBar extends StatelessWidget {
           Text(
             '$_labelText · ${(clamped * 100).round()}%',
             style: TextStyle(
-              fontFamily: 'Poppins',
               fontSize: 11,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               color: _color,
               letterSpacing: 0.2,
             ),

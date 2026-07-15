@@ -289,7 +289,7 @@ class _Welcome extends StatelessWidget {
             text: TextSpan(
               style: Theme.of(context).textTheme.titleMedium,
               children: [
-                const TextSpan(text: '#1 ', style: TextStyle(color: AppColors.coral, fontWeight: FontWeight.w800)),
+                const TextSpan(text: '#1 ', style: TextStyle(color: AppColors.coral, fontWeight: FontWeight.w600)),
                 TextSpan(text: context.l10n.tr('onb_welcome_rank_label')),
               ],
             ),
@@ -583,7 +583,6 @@ class _OptionCard extends StatelessWidget {
                 children: [
                   Text(opt.title,
                       style: const TextStyle(
-                        fontFamily: 'Poppins',
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         height: 1.25,
@@ -1159,9 +1158,8 @@ class _PillButton extends StatelessWidget {
             child: Center(
               child: Text(label,
                   style: const TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.paper)),
             ),
           ),

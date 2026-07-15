@@ -123,7 +123,6 @@ class _MarkersSheetState extends ConsumerState<MarkersSheet> {
                         keyboardType: TextInputType.number,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
@@ -187,7 +186,6 @@ class _MarkersSheetState extends ConsumerState<MarkersSheet> {
   InputDecoration _inputDecoration(String hint) => InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(
-          fontFamily: 'Poppins',
           color: AppColors.walnutMuted,
         ),
         filled: true,
@@ -244,7 +242,6 @@ class _MarkerRow extends StatelessWidget {
             child: Text(
               '${marker.row}',
               style: TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: reached ? AppColors.sage : AppColors.walnut,

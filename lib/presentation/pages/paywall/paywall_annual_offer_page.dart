@@ -199,10 +199,9 @@ class _PaywallAnnualOfferPageState
                             l10n.tr('pay_offer_headline'),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              fontFamily: 'Poppins',
                               fontSize: 24,
                               height: 1.15,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
                           ),
@@ -413,9 +412,8 @@ class _TrialTimeline extends StatelessWidget {
                         Text(
                           steps[i].$2,
                           style: const TextStyle(
-                            fontFamily: 'Poppins',
                             fontSize: 14.5,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
@@ -470,9 +468,8 @@ class _AnnualPlanCard extends StatelessWidget {
                       child: Text(
                         l10n.tr('pay_offer_plan_title'),
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 16.5,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
@@ -487,7 +484,7 @@ class _AnnualPlanCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.white.withValues(alpha: 0.65),
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 const SizedBox(height: 5),
@@ -501,7 +498,7 @@ class _AnnualPlanCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12.5,
                         color: AppColors.sage,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -672,9 +669,8 @@ class _CtaButton extends StatelessWidget {
                     strokeWidth: 2.4, color: Colors.white))
             : Text(label,
                 style: const TextStyle(
-                    fontFamily: 'Poppins',
                     fontSize: 16.5,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white)),
       ),
     );

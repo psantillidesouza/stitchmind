@@ -72,8 +72,7 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
                 const Expanded(
                   child: Text('Community',
                       style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                           fontSize: 26,
                           color: AppColors.walnut)),
                 ),
@@ -141,7 +140,6 @@ class _CommunityPageState extends ConsumerState<CommunityPage> {
                     ),
                   Text(f.label,
                       style: TextStyle(
-                          fontFamily: 'Poppins',
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                           color: active ? AppColors.paper : AppColors.walnutSoft)),
@@ -174,8 +172,7 @@ class _PublishButton extends StatelessWidget {
             SizedBox(width: 6),
             Text('Share',
                 style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.paper)),
           ]),
         ),
@@ -200,8 +197,7 @@ class _EmptyState extends StatelessWidget {
         Text(savedTab ? 'No saved posts yet' : 'Nothing here yet',
             textAlign: TextAlign.center,
             style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 18,
                 color: AppColors.walnut)),
         const SizedBox(height: 8),
@@ -211,7 +207,7 @@ class _EmptyState extends StatelessWidget {
                 : 'Be the first to share your crochet with the community 🧶',
             textAlign: TextAlign.center,
             style: const TextStyle(
-                fontFamily: 'Poppins', fontSize: 14, color: AppColors.walnutSoft)),
+                fontSize: 14, color: AppColors.walnutSoft)),
       ],
     );
   }
@@ -228,7 +224,7 @@ class _ErrorState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text("Couldn't load the feed.",
-              style: TextStyle(fontFamily: 'Poppins', color: AppColors.walnutSoft)),
+              style: TextStyle(color: AppColors.walnutSoft)),
           const SizedBox(height: 12),
           TextButton(onPressed: onRetry, child: const Text('Try again')),
         ],

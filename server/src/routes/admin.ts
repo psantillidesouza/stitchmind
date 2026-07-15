@@ -653,8 +653,13 @@ const StitchSchema = z.object({
   confidence: z.string().optional(),
 });
 
+// Modelo novo do passo do guia: Título* + Subtítulo* + Dica opcional +
+// até 10 instruções (mín. 1). Campos legados continuam aceitos para as
+// aulas antigas não quebrarem.
 const FullStepSchema = z.object({
   title: z.string().optional(),
+  subtitle: z.string().optional(),
+  instructions: z.array(z.string()).max(10).optional(),
   instruction: z.string().optional(),
   tip: z.string().optional(),
   time: z.number().nullable().optional(),
@@ -736,6 +741,8 @@ adminRoutes.post("/lessons/full", async (c) => {
       const content = {
         number: i + 1,
         title: s.title ?? null,
+        subtitle: s.subtitle ?? null,
+        instructions: s.instructions ?? [],
         instruction: s.instruction ?? null,
         tip: s.tip ?? null,
         time: s.time ?? null,

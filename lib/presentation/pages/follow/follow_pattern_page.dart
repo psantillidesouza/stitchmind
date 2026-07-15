@@ -110,7 +110,7 @@ class _FollowPatternPageState extends ConsumerState<FollowPatternPage> {
                       TextSpan(
                         text: '${e.key}  ',
                         style: const TextStyle(
-                            fontWeight: FontWeight.w800, color: AppColors.coral),
+                            fontWeight: FontWeight.w600, color: AppColors.coral),
                       ),
                       TextSpan(text: e.value),
                     ],
@@ -218,7 +218,7 @@ class _Follow extends StatelessWidget {
                 l10n.tr('follow_row_label',
                     {'n': '${isDone ? total : done + 1}', 'total': '$total'}),
                 style: const TextStyle(
-                    fontWeight: FontWeight.w700, color: AppColors.walnutMuted),
+                    fontWeight: FontWeight.w600, color: AppColors.walnutMuted),
               ),
             ],
           ),
@@ -245,7 +245,7 @@ class _Follow extends StatelessWidget {
                     Text('${isDone ? total : done + 1}',
                         style: const TextStyle(
                             fontSize: 44,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.ink)),
                     Text(l10n.tr('follow_current_row'),
                         style: const TextStyle(

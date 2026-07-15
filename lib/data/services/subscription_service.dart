@@ -219,9 +219,25 @@ class SubscriptionService extends ChangeNotifier {
     }
   }
 
-  /// Compra um produto. Retorna true se ficou assinante, false se cancelou.
+  /// Compra um produto (paywall principal). Retorna true se ficou assinante,
+  /// false se o usuário cancelou.
+  ///
+  /// Android: compra explicitamente o BASE PLAN, nunca uma oferta — a oferta
+  /// de trial ([_googleTrialOfferId]) existe no mesmo plano anual e o SDK a
+  /// aplicaria por padrão; ela é exclusiva da tela de saída
+  /// ([purchaseAnnualTrial]).
   Future<bool> purchase(StoreProduct product) async {
     try {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        final options =
+            product.subscriptionOptions ?? const <SubscriptionOption>[];
+        for (final o in options) {
+          if (o.isBasePlan) {
+            _apply(await Purchases.purchaseSubscriptionOption(o));
+            return isSubscribed;
+          }
+        }
+      }
       await Purchases.purchaseStoreProduct(product);
     } on PlatformException catch (e) {
       final code = PurchasesErrorHelper.getErrorCode(e);
